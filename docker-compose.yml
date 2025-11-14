@@ -2,59 +2,38 @@ version: '3.8'
 
 services:
   # --------------------
-  # 1. Frontend Service (Vue 3 / NGINX)
+  # 1. Frontend Service (Vue 3 / Vite Development Mode)
   # --------------------
   frontend:
     container_name: meetro_frontend
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    # Maps container port 80 to host port 8080 (allows external access from your browser)
+      context: .
+      # 使用我們專為開發模式創建的 Dockerfile
+      dockerfile: frontend/Dockerfile.dev 
+    # 映射 Vite Dev Server 的預設端口 5173
     ports:
-      - "8080:80"
+      - "5173:5173"
+    # Volume Mounts 實現 HMR
+    volumes:
+      # 將本地 frontend 目錄映射到容器的 /app，實現原始碼同步
+      - ./frontend:/app
+      # 避免將本地 host 的 node_modules 覆蓋容器內部的，保持依賴一致
+      - /app/node_modules
+    # 運行 Vite 開發伺服器，並監聽所有網路接口
+    command: npm run dev -- --host 0.0.0.0
     depends_on:
       - backend
 
   # --------------------
-  # 2. Backend Service (FastAPI)
+  # 2. Backend Service (假設是 Python/Django)
   # --------------------
   backend:
-    container_name: meetro_backend
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    # Exposes port 5000 internally for the frontend to access
-    expose:
-      - "5000"
-    # Mount local backend code for development hot-reloading
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: meetro-backend
     volumes:
       - ./backend:/app
-    environment:
-      PYTHONUNBUFFERED: 1
-      # Note: Database credentials should eventually be secured!
-      DATABASE_HOST: db
-      DATABASE_NAME: meetro_dev_db
-      DATABASE_USER: meetro_user
-      DATABASE_PASS: supersecurepassword # Replace this with a real password
-
-  # --------------------
-  # 3. Database Service (PostgreSQL)
-  # --------------------
-  db:
-    container_name: meetro_db
-    image: postgres:15-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: meetro_user
-      POSTGRES_PASSWORD: supersecurepassword # Match the backend's DATABASE_PASS
-      POSTGRES_DB: meetro_dev_db
-    # Exposes port 5432 internally for the backend to connect
-    expose:
-      - "5432"
-    # Persist the data outside the container
-    volumes:
-      - meetro_postgres_data:/var/lib/postgresql/data/
-
-# Define the persistent volume for the database
-volumes:
-  meetro_postgres_data:
+    ports:
+      - "8000:8000"
+    command: python manage.py runserver 0.0.0.0:8000
