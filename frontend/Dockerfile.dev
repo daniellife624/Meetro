@@ -5,8 +5,5 @@ FROM node:20-alpine AS dev-stage
 
 # 設定工作目錄
 WORKDIR /app
-
-# 複製 package 檔案並安裝所有依賴
-# 注意：這裡使用 frontend/package\*.json，因為 Docker 的 context 在根目錄 (D:\Meetro)
 COPY frontend/package*.json ./
 RUN npm install --force
