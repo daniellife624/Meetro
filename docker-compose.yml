@@ -1,39 +1,36 @@
 version: '3.8'
 
 services:
-  # --------------------
-  # 1. Frontend Service (Vue 3 / Vite Development Mode)
-  # --------------------
-  frontend:
-    container_name: meetro_frontend
-    build:
-      context: .
-      # 使用我們專為開發模式創建的 Dockerfile
-      dockerfile: frontend/Dockerfile.dev 
-    # 映射 Vite Dev Server 的預設端口 5173
-    ports:
-      - "5173:5173"
-    # Volume Mounts 實現 HMR
-    volumes:
-      # 將本地 frontend 目錄映射到容器的 /app，實現原始碼同步
-      - ./frontend:/app
-      # 避免將本地 host 的 node_modules 覆蓋容器內部的，保持依賴一致
-      - /app/node_modules
-    # 運行 Vite 開發伺服器，並監聽所有網路接口
-    command: npm run dev -- --host 0.0.0.0
-    depends_on:
-      - backend
-
-  # --------------------
-  # 2. Backend Service (假設是 Python/Django)
-  # --------------------
   backend:
+    container_name: meetro_backend
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: meetro-backend
-    volumes:
-      - ./backend:/app
     ports:
       - "8000:8000"
-    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    # command: uvicorn main:app --host 0.0.0.0 --port 8000 
+
+  frontend:
+    container_name: meetro_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile 
+    
+    ports:
+      # 🚀 修正: 將主機端口設定為業界常用的 8080
+      # 格式: "主機端口:容器端口" -> (8080:5173)
+      - "8080:5173" 
+    
+    volumes:
+      # 映射前端原始碼，用於熱重載 (HMR)
+      - ./frontend:/app 
+      # 排除 node_modules，確保使用容器內安裝的版本
+      - /app/node_modules 
+      
+    # 執行 Vite 開發伺服器，並綁定到 0.0.0.0 讓外部可連線，端口仍為 Vite 預設的 5173
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+      
+    depends_on:
+      - backend

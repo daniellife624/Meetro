@@ -1,0 +1,17 @@
+{
+  // 繼承基礎配置，確保所有規則都被應用
+  "extends": "./tsconfig.json", 
+  
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      // 解決 @/ 別名找不到模組的關鍵
+      "@/*": ["./src/*"] 
+    }
+  },
+  
+  // 包含所有原始碼檔案
+  "include": ["src/**/*"], 
+  "exclude": ["node_modules"]
+}
