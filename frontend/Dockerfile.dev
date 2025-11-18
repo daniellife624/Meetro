@@ -1,9 +1,19 @@
 # ------------------------------------
-# Development Stage
+# Development Stage - 專為 Vite HMR 設計
 # ------------------------------------
-FROM node:20-alpine AS dev-stage
+FROM node:20-alpine 
 
 # 設定工作目錄
 WORKDIR /app
-COPY frontend/package*.json ./
+
+# 1. 複製 package 檔案，以便 Docker 利用快取
+COPY package*.json ./
+
+# 2. 🚀 安裝所有依賴
 RUN npm install --force
+
+# 3. 複製所有專案檔案 (包含 src, vite.config, tsconfig 等)
+# 雖然我們使用了 Volume 映射，但這個步驟確保了容器在啟動 npm run dev 之前有完整的檔案結構。
+COPY . . 
+
+# 容器啟動命令在 docker-compose.yml 中定義

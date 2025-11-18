@@ -1,11 +1,22 @@
-<script setup></script>
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+// 1. 確保正確導入 GlobalLoadingOverlay.vue
+// 假設路徑是 @/components/shared/GlobalLoadingOverlay.vue
+import GlobalLoadingOverlay from '@/components/shared/GlobalLoadingOverlay.vue'
+</script>
 
 <template>
-  <h1 class="bg-black text-8xl">You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <!-- 這是整個應用程式的根容器 -->
+  <div class="min-h-screen flex flex-col">
+    <!-- RouterView 將根據當前路由渲染對應的 Layout 或 Page -->
+    <RouterView />
+
+    <!-- 2. 在模板中使用 GlobalLoadingOverlay 組件 -->
+    <!-- 放置在最頂層，以便它可以覆蓋應用程式中的所有內容 -->
+    <GlobalLoadingOverlay />
+  </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* 這裡可以放 App.vue 的特定樣式 */
+</style>

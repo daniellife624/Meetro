@@ -1,26 +1,26 @@
+// src/main.ts - 應用程式進入點邏輯
+
 import { createApp } from 'vue'
-import App from './App.vue'
+import App from './App.vue' // 導入根組件
 
-// === 導入 Windi CSS (用於樣式設計) ===
-// 這是 Windi CSS 透過 Vite 插件自動生成的樣式入口
-import 'virtual:windi.css'
-
-// === 導入第三方庫的全局 CSS ===
-// 這是 Lottie 動畫庫的樣式，Rollup 會將其正確處理。
-import 'vue3-lottie/dist/style.css'
-
-// === 導入路由和狀態管理 ===
-import router from './router'
+// 導入 Pinia (狀態管理)
 import { createPinia } from 'pinia'
 
-// 建立 Pinia 實例
-const pinia = createPinia()
+// 🌟 關鍵修正：從新的位置 (src/router/index.ts) 導入 router 實例 🌟
+import router from './router/index'
 
+// 導入其他必要的樣式和庫
+import 'virtual:windi.css' // 假設您有使用 Windi CSS
+
+// 初始化應用程式
 const app = createApp(App)
 
-// 註冊 Pinia 和 Vue Router
+// 1. 掛載 Pinia (Pinia 必須先於 Router 掛載)
+const pinia = createPinia()
 app.use(pinia)
+
+// 2. 掛載 Vue Router 實例
 app.use(router)
 
-// 掛載應用程式
+// 3. 掛載到 HTML 根元素
 app.mount('#app')

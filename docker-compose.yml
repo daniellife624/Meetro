@@ -7,30 +7,32 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     ports:
+      # 後端 API 端口映射
       - "8000:8000"
     volumes:
+      # 映射後端原始碼以啟用實時更新 (如果您的後端支持)
       - ./backend:/app
-    # command: uvicorn main:app --host 0.0.0.0 --port 8000 
 
   frontend:
     container_name: meetro_frontend
+    # 這是專為開發環境配置的前端服務，使用 Vite 進行熱重載 (HMR)
     build:
       context: ./frontend
-      dockerfile: Dockerfile 
+      # 🎯 確保使用包含 Node.js 和 npm 的開發環境 Dockerfile
+      dockerfile: Dockerfile.dev 
     
     ports:
-      # 🚀 修正: 將主機端口設定為業界常用的 8080
-      # 格式: "主機端口:容器端口" -> (8080:5173)
-      - "8080:5173" 
+      # 【修正 1】統一端口映射：將主機的 8080 端口映射到容器內 Vite 的 8080 端口。
+      - "8080:8080" 
     
     volumes:
-      # 映射前端原始碼，用於熱重載 (HMR)
+      # 1. 映射前端原始碼到容器 /app，啟用實時熱重載 (HMR)。
       - ./frontend:/app 
-      # 排除 node_modules，確保使用容器內安裝的版本
+      # 2. 排除 node_modules：確保容器使用其內安裝的依賴。
       - /app/node_modules 
       
-    # 執行 Vite 開發伺服器，並綁定到 0.0.0.0 讓外部可連線，端口仍為 Vite 預設的 5173
-    command: npm run dev -- --host 0.0.0.0 --port 5173
+    # 【修正 2】執行 Vite 開發伺服器，並綁定到 0.0.0.0 且使用 8080 端口。
+    command: npm run dev -- --host 0.0.0.0 --port 8080
       
     depends_on:
       - backend
