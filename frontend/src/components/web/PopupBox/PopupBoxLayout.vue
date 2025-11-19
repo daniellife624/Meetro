@@ -1,142 +1,44 @@
 <template>
-  <CoverContainer :model-value="true" @click.self="cancelCallback" :teleport-to-body="false">
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4"
+  >
     <div
-      v-is="useForm ? 'form' : 'div'"
-      class="popup-box shadow shadow-sm"
-      :id="id"
-      @submit.prevent
+      class="bg-white rounded-2xl w-full max-w-lg shadow-2xl transform transition-all duration-300 scale-100 opacity-100"
     >
-      <div class="body">
-        <div class="title">
-          <SvgItem :type="'circle-exclamation'" size="sm" class="text-blue-500"></SvgItem>
-          {{ title }}
-        </div>
-        <div class="content">
-          <slot></slot>
-        </div>
-      </div>
-      <div class="btn-group">
-        <button type="button" @click="cancelCallback">{{ cancelText }}</button>
-        <button type="submit" @click="confirmCallback" :style="confirmBtnStyle">
-          {{ confirmText }}
+      <!-- 標題與關閉按鈕 -->
+      <div class="flex justify-between items-center p-5 border-b border-gray-200">
+        <h2 class="text-xl font-extrabold text-[#286047]">{{ title }}</h2>
+        <button
+          @click="cancelCallback"
+          class="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
+          aria-label="Close popup"
+        >
+          <!-- 使用 SvgItem 替代 X -->
+          <SvgItem name="x" size="6" class="w-6 h-6" />
         </button>
       </div>
+
+      <!-- 內容區域 -->
+      <div class="p-6">
+        <slot></slot>
+      </div>
     </div>
-  </CoverContainer>
+  </div>
 </template>
 
 <script setup lang="ts">
-import CoverContainer from '@/components/container/CoverContainer.vue'
-import SvgItem from '../SvgItem.vue'
-import { ref, toRefs } from 'vue'
-import { PopupType } from '@/composables/useConfirmBox'
-import { computed } from '@vue/reactivity'
+// 導入 SvgItem
+import SvgItem from '@/components/icons/SvgItem.vue'
 
-interface Props {
+defineProps<{
   title: string
-  cancelCallback(): void
-  confirmCallback(): void
-  type?: PopupType
-  cancelText?: string
-  confirmText?: string
-  useForm?: boolean
-  id?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  type: 'normal',
-  cancelText: '取消',
-  confirmText: '確認',
-  useForm: false,
-})
-
-const { type } = toRefs(props)
-
-const typeToColor: { [key in PopupType]: string } = {
-  error: '#ef4444',
-  normal: '#3b82f6',
-}
-
-const confirmBtnStyle = computed(() => {
-  const btnColor = '#fff'
-  const btnBg = typeToColor[type.value]
-
-  const opacity = 0.7
-  const colorA = Math.round(opacity * 255)
-  const colorAHex = colorA.toString(16)
-
-  const btnBgHover = btnBg + colorAHex
-  return {
-    '--confirm-btn-bg': btnBg,
-    '--confirm-btn-bg-hover': btnBgHover,
-    '--confirm-btn-color': btnColor,
-  }
-})
+  confirmText: string
+  cancelCallback: () => void
+  confirmCallback: () => void // 這裡的 callback 在主頁面被設置為空，實際邏輯在 slot 內處理
+  type?: string // 未使用，但保留
+  useForm?: boolean // 未使用，但保留
+  id?: string // 未使用，但保留
+}>()
 </script>
 
-<style lang="scss">
-.popup-box {
-  background: #ffffff;
-  width: min(95vw, 420px);
-  min-height: 200px;
-  border-radius: 4px;
-  box-shadow: 0px 2px 8px 1px rgba(44, 110, 198, 0.06);
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.5rem 1.25rem 1rem;
-  .body {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    .title {
-      font-weight: bold;
-      font-size: 20px;
-      line-height: 24px;
-      text-align: left;
-      color: #1e212c;
-      margin-bottom: 0.75rem;
-    }
-
-    .content {
-      overflow: auto;
-      scrollbar-gutter: stable;
-      font-size: 16px;
-      line-height: 24px;
-      text-align: left;
-      color: #252d39;
-      flex-grow: 1;
-    }
-  }
-
-  .btn-group {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    button {
-      height: 36px;
-      padding: 8px 12px;
-      min-width: 64px;
-      font-weight: bold;
-      font-size: 14px;
-      border-radius: 0.125rem;
-      &:nth-child(1) {
-        background-color: #e0e0e0;
-        &:hover {
-          background-color: #e0e0e0c1;
-        }
-      }
-      &:last-child {
-        color: var(--confirm-btn-color);
-
-        background-color: var(--confirm-btn-bg);
-        &:hover {
-          background-color: var(--confirm-btn-bg-hover);
-        }
-      }
-    }
-  }
-}
-</style>
+<style scoped></style>
