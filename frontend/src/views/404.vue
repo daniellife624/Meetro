@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 text-center p-10 bg-white shadow-2xl rounded-xl">
+  <div class="flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="w-full space-y-8 text-center p-10 bg-white shadow-2xl rounded-xl">
       <!-- 錯誤代碼 -->
       <h1
         class="text-9xl font-extrabold text-indigo-600 tracking-wider transition-colors duration-300"

@@ -1,257 +1,120 @@
-import router from '@/router'
-// import { $notify } from '@/composables/useNotifications'
-import { notFoundRouteName } from '@/router/modules/404'
-import { NavigationGuardWithThis, RouteRecordRaw } from 'vue-router'
-// import { WebRole } from '@/types/web'
-// import { useStore } from '@/store'
-// import { useRole } from '@/composables/usePiniaOrRouter'
+import { RouteRecordRaw } from 'vue-router'
 
-export const webRouteName = 'web-index'
+// 這是路由巢狀結構的基礎路徑名稱，用於動態添加路由
+export const webRouteName = 'web'
+
 /**
- * web root route
+ * @description 取得 RouteRecordRaw，用於在 Store 中動態新增路由模組。
+ * @param children 傳入特定角色的子路由列表
+ * @returns 完整的 web 父級路由物件
  */
 export const getWebRoute = (children: RouteRecordRaw[]): RouteRecordRaw => ({
-  path: '/',
+  path: '/web',
   name: webRouteName,
-  component: () => import('@/views/web.vue'),
-  redirect: { name: 'home' },
-  beforeEnter: (to, from) => {
-    const store = useStore()
-    if (!store.isInit) {
-      const router = store.auth()
-      if (to.name && router.hasRoute(to.name))
-        return { name: to.name, params: to.params, query: to.query }
-      else return { path: to.fullPath, params: to.params, query: to.query }
-    }
-  },
+  component: () => import('@/views/web/index.vue'),
   children,
 })
 
-const ChatItem = () => import('@/components/web/shared/ChatItem.vue')
-const BackToTop = () => import('@/components/web/shared/BackToTop.vue')
-
-function getTitle(text: string) {
-  return `${text} - Meetro`
-}
-
+/**
+ * @description 建立標準路由物件的 Helper Class，確保命名和路徑一致性。
+ * @param role 角色名稱 ('user', 'beforeLogin', 'bcms' 等)，用於 meta.roles
+ */
 export class RouteModel {
-  _role: WebRole = null
-  _all: boolean = false
-  constructor(role: WebRole, all: boolean = false) {
-    this._role = role
-    this._all = all
+  role: string | null
+
+  constructor(role: string | null) {
+    this.role = role
   }
 
-  // 首頁(登入前)
-  home = () => {
+  // 靜態方法，用於統一的 meta 屬性
+  private getMeta(title: string, requiresAuth: boolean = false) {
     return {
-      path: '',
-      name: 'home',
-      meta: {
-        role: this._role,
-        title: getTitle('首頁'),
-      },
-      components: {
-        default: () => import('@/views/web/index.vue'),
-        BackToTop,
-      },
+      title,
+      requiresAuth,
+      roles: this.role ? [this.role] : [],
     }
   }
-  //登入
-  login = () => ({
-    path: 'login',
-    name: 'login',
-    meta: {
-      title: getTitle('登入'),
-      mainClass: 'flex items-center',
-    },
-    components: {
-      default: () => import('@/views/web/login.vue'),
-    },
-  })
-  //註冊
-  register = () => ({
-    path: 'register',
-    name: 'register',
-    meta: {
-      title: getTitle('註冊'),
-    },
-    components: {
-      default: () => import('@/views/web/register.vue'),
-      BackToTop,
-    },
-  })
-  //忘記密碼
-  forgetPassword = () => ({
-    path: 'forgetPassword',
-    name: 'forget-password',
-    meta: {
-      title: getTitle('忘記密碼'),
-      mainClass: 'flex items-center',
-    },
-    components: {
-      default: () => import('@/views/web/ForgetPassword.vue'),
-    },
-  })
 
-  //   questions = () => {
-  //     return {
-  //       path: `questions`,
-  //       name: `questions`,
-  //       meta: {
-  //         role: this._role,
-  //       },
-  //       components: {
-  //         default: () => import(`@/views/web/questions.vue`),
-  //         BackToTop,
-  //       },
-  //     }
-  //   }
+  // 首頁/根目錄路由
+  home(): RouteRecordRaw {
+    return {
+      path: '', // 繼承父級 '/web'
+      name: 'home', // 應用程式入口預設名稱
+      meta: this.getMeta('首頁', !!this.role),
+      component: () => import('@/views/web/index.vue'),
+    }
+  }
 
-  // 通知中心(選擇方)
-  //   notifications = () => {
-  //     return {
-  //       path: `notifications`,
-  //       name: `notifications`,
-  //       meta: {
-  //         role: this._role,
-  //       },
-  //       components: {
-  //         default: () => import(`@/views/web/notifications.vue`),
-  //         ChatItem,
-  //         BackToTop,
-  //       },
-  //     }
-  //   }
+  // 登入頁面 (僅限 BeforeLogin 使用)
+  login(): RouteRecordRaw {
+    return {
+      path: 'login',
+      name: 'Login',
+      meta: this.getMeta('登入'),
+      component: () => import('@/views/web/login.vue'),
+    }
+  }
 
-  // 我的收藏商家(消費者端)
-  //   favorites = () => {
-  //     return {
-  //       path: 'favorites',
-  //       name: `favorites`,
-  //       meta: {
-  //         role: this._role,
-  //       },
-  //       components: {
-  //         default: () => import('@/views/web/favorites.vue'),
-  //         BackToTop,
-  //         ChatItem,
-  //       },
-  //     }
-  //   }
+  // 註冊頁面 (僅限 BeforeLogin 使用)
+  register(): RouteRecordRaw {
+    return {
+      path: 'register',
+      name: 'Register',
+      meta: this.getMeta('註冊'),
+      component: () => import('@/views/web/register.vue'),
+    }
+  }
 
-  // 個人資料頁(消費者端、店家端、組織端)
-  profile = () => {
+  // 忘記密碼頁面 (僅限 BeforeLogin 使用)
+  forgetPassword(): RouteRecordRaw {
+    return {
+      path: 'forget-password',
+      name: 'ForgetPassword',
+      meta: this.getMeta('忘記密碼'),
+      component: () => import('@/views/web/ForgetPassword.vue'),
+    }
+  }
+
+  // 個人資料頁面 (僅限 User 使用)
+  profile(): RouteRecordRaw {
     return {
       path: 'profile',
-      components: {
-        default: () => import('@/views/web/profile.vue'),
-        BackToTop,
-        ChatItem,
-      },
-      children: [
-        {
-          path: '',
-          name: `profile`,
-          component: () => import('@/views/web/profile/index.vue'),
-        },
-        {
-          path: 'update',
-          name: `profile-update`,
-          component: () => import('@/views/web/profile/update.vue'),
-        },
-      ],
+      name: 'UserProfile',
+      meta: this.getMeta('個人資料', true),
+      component: () => import('@/views/web/profile.vue'),
     }
   }
 
-  // 活動(消費者端、組織端)
-  //   events = () => {
-  //     const role = this._role
-  //     const children: RouteRecordRaw[] = [
-  //       {
-  //         path: '',
-  //         name: 'events',
-  //         component: () => import('@/views/web/events/index.vue'),
-  //       },
-  //       {
-  //         path: ':id(\\d+)',
-  //         name: 'events-id',
-  //         component: () => import('@/views/web/events/id.vue'),
-  //       },
-  //     ]
-  //     const eventsAction = [
-  //       {
-  //         path: 'create',
-  //         name: `events-create`,
-  //         component: () => import('@/views/web/events/create.vue'),
-  //       },
-  //       {
-  //         path: ':id(\\d+)/update',
-  //         name: 'events-update',
-  //         component: () => import('@/views/web/events/update.vue'),
-  //       },
-  //     ]
-  //     if (role === 'organization' || this._all) children.push(...eventsAction)
-  //     return {
-  //       path: 'events',
-  //       meta: { role },
-  //       beforeEnter: merchantAuth,
-  //       components: {
-  //         default: () => import('@/views/web/events.vue'),
-  //         BackToTop,
-  //         ChatItem,
-  //       },
-  //       children,
-  //       redirect: { name: 'events' },
-  //     }
-  //   }
+  // 歷史記錄頁面 (僅限 User 使用)
+  history(): RouteRecordRaw {
+    return {
+      path: 'history',
+      name: 'UserHistory',
+      meta: this.getMeta('歷史記錄', true),
+      component: () => import('@/views/web/history.vue'),
+    }
+  }
 
-  //   upgrade = () => {
-  //     const role = this._role
-  //     return {
-  //       path: `upgrade`,
-  //       meta: { role },
-  //       components: {
-  //         default: () => import('@/views/web/upgrade.vue'),
-  //         BackToTop,
-  //         ChatItem,
-  //       },
-  //       children: [
-  //         {
-  //           path: '',
-  //           name: `upgrade`,
-  //           component: () => import('@/views/web/upgrade/index.vue'),
-  //         },
-  //         {
-  //           beforeEnter: merchantAuth,
-  //           path: 'details',
-  //           component: () => import('@/views/web/upgrade/details.vue'),
-  //           children: [
-  //             {
-  //               name: `upgrade-details`,
-  //               path: '',
-  //               component: () => import('@/views/web/upgrade/details/index.vue'),
-  //             },
-  //             {
-  //               name: `upgrade-details-id`,
-  //               path: ':id(\\d+)',
-  //               component: () => import('@/views/web/upgrade/details/id.vue'),
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           path: 'points',
-  //           name: `upgrade-points`,
-  //           beforeEnter: merchantAuth,
-  //           component: () => import('@/views/web/upgrade/points.vue'),
-  //         },
-  //         {
-  //           path: 'ads',
-  //           name: `upgrade-ads`,
-  //           beforeEnter: merchantAuth,
-  //           component: () => import('@/views/web/upgrade/ads.vue'),
-  //         },
-  //       ],
-  //     }
-  //   }
+  // 會員列表/社群頁面 (Both Roles 使用)
+  members(): RouteRecordRaw {
+    return {
+      path: 'members',
+      name: 'Members',
+      // 未登入角色可見 (requiresAuth: false)，但 User 角色也能透過這個路由訪問
+      meta: this.getMeta('會員列表', false),
+      component: () => import('@/views/web/members.vue'),
+    }
+  }
+
+  // 登出路由 (僅限 User 使用，通常觸發 Pinia action)
+  // 這裡我們指向一個空的組件，並在 meta 中標記為登出動作
+  logout(): RouteRecordRaw {
+    return {
+      path: 'logout',
+      name: 'Logout',
+      meta: this.getMeta('登出', true),
+      // 通常登出不需要專門的組件，但這裡可以指向一個處理登出邏輯的頁面或空頁面
+      component: () => import('@/views/web/LogoutPlaceholder.vue'),
+    }
+  }
 }

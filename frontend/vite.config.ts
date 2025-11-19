@@ -30,7 +30,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       watch: {
         usePolling: true,
       },
-      // 這是設定 port 為 8080 的地方
       port: 8080,
     },
 

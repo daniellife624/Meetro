@@ -8,7 +8,7 @@
       <div class="bg-white p-6 rounded-xl shadow-lg">
         <h3 class="text-2xl font-semibold mb-3 text-gray-800">元件測試確認</h3>
         <!-- 確保 BaseButton 載入路徑正確 -->
-        <BaseButton type="primary">路由測試成功</BaseButton>
+        <!-- <BaseButton type="primary">路由測試成功</BaseButton> -->
       </div>
       <div class="bg-white p-6 rounded-xl shadow-lg">
         <h3 class="text-2xl font-semibold mb-3 text-gray-800">下一步</h3>
@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import BaseButton from '@/components/BaseButton.vue' // 確保路徑是從根目錄開始 (使用 @)
+// import BaseButton from '@/components/BaseButton.vue' // 確保路徑是從根目錄開始 (使用 @)
 </script>
 
 <style scoped>

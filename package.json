@@ -11,10 +11,11 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0",
+    "js-cookie": "^3.0.5",
     "pinia": "^2.1.7",
+    "vue": "^3.4.21",
     "vue-i18n": "^9.10.2",
+    "vue-router": "^4.3.0",
     "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
@@ -27,11 +28,13 @@
     "eslint-plugin-vue": "^9.23.0",
     "npm-run-all2": "^6.1.2",
     "prettier": "^3.2.5",
+    "sass": "^1.94.1",
+    "sass-embedded": "^1.93.3",
     "typescript": "~5.3.0",
+    "unplugin-auto-import": "^0.17.5",
     "vite": "^5.1.4",
-    "vue-tsc": "^2.0.10",
     "vite-plugin-windicss": "^1.9.4",
-    "windicss": "^3.5.6",
-    "unplugin-auto-import": "^0.17.5"
+    "vue-tsc": "^2.0.10",
+    "windicss": "^3.5.6"
   }
 }
