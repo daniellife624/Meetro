@@ -1,29 +1,28 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
-// 這是為了解決構建錯誤而創建的最小 Pinia Store 佔位符。
-// 它導出了一個名為 "useLoadingStore" 的函式，供其他部分引用。
+export const useLoadingStore = defineStore('loading', () => {
+  // --- State ---
+  const isLoading = ref(false)
+  const loadingText = ref('載入中...')
 
-export const useLoadingStore = defineStore('loading', {
-  // 狀態 (State) - 定義儲存的資料
-  state: () => ({
-    isLoading: false as boolean,
-    loadingMessage: '' as string,
-  }),
+  // --- Actions ---
+  /**
+   * 設定 Loading 狀態
+   * @param status 是否顯示 Loading
+   * @param text Loading 顯示文字 (選填)
+   */
+  function setLoading(status: boolean, text?: string) {
+    isLoading.value = status
+    if (text) {
+      loadingText.value = text
+    }
+  }
 
-  // 行為 (Actions) - 定義修改狀態的方法
-  actions: {
-    startLoading(message = '正在加載...') {
-      this.isLoading = true
-      this.loadingMessage = message
-    },
-    stopLoading() {
-      this.isLoading = false
-      this.loadingMessage = ''
-    },
-  },
-
-  // 計算屬性 (Getters) - 定義派生狀態
-  getters: {
-    getLoadingStatus: (state) => state.isLoading,
-  },
+  // --- Return (必須回傳，外部才拿得到) ---
+  return {
+    isLoading,
+    loadingText,
+    setLoading, // 這裡一定要回傳，Router 才能呼叫 loadingStore.setLoading
+  }
 })

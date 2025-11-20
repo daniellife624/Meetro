@@ -1,6 +1,5 @@
 <template>
   <div class="flex flex-col md:flex-row h-screen w-full bg-gray-100 overflow-hidden font-sans">
-    <!-- 左側：步驟指南 -->
     <div
       class="w-full md:w-1/3 bg-white border-r border-gray-200 p-6 flex flex-col overflow-y-auto max-h-full md:max-h-screen"
     >
@@ -19,19 +18,16 @@
       </div>
     </div>
 
-    <!-- 右側: 邀約列表 -->
-    <div class="flex flex-col w-full md:w-2/3 p-6 relative overflow-y-auto">
-      <!-- 標題使用計算後的中文站名 -->
-      <h1 class="text-2xl font-bold text-gray-800 border-b pb-3">探索{{ stationName }}站的邀約</h1>
+    <div class="flex flex-col w-full md:w-2/3 pl-6 py-6 pr-0 relative overflow-y-auto">
+      <h1 class="text-2xl font-bold text-gray-800 border-b pb-3 pr-6">
+        探索{{ stationName }}站的邀約
+      </h1>
 
-      <!-- 加載中/錯誤提示 (模擬) -->
       <div v-if="isLoading" class="text-center py-10 text-gray-500">
         正在模擬載入 {{ stationName }} 站的邀約...
       </div>
 
-      <!-- 邀約列表 -->
       <div v-else-if="invites.length > 0" class="space-y-4">
-        <!-- 確保 InviteItem 的路徑和屬性正確 -->
         <InviteItem
           v-for="invite in invites"
           :key="invite.id"
@@ -41,10 +37,17 @@
           @reject="handleReject"
         />
       </div>
+
       <div v-else class="text-center py-10 text-gray-500">
         目前{{ stationName }}站沒有公開的邀約...
       </div>
     </div>
+
+    <InviteDetailPopup
+      v-if="showDetailPopup && selectedInvite"
+      :invite="selectedInvite"
+      @close="closeDetailPopup"
+    />
   </div>
 </template>
 
@@ -52,56 +55,63 @@
 import { ref, computed, defineProps, watchEffect } from 'vue'
 import MeetroIntroCard from '@/components/cards/MeetroIntroCard.vue'
 import InviteItem from '@/components/items/InviteItem.vue'
+import InviteDetailPopup from '@/components/web/PopupBox/InviteDetailPopup.vue'
 
-// 站點英文 Key 到中文名稱的映射
 const stationMap: Record<string, string> = {
   xindian: '新店',
   gongguan: '公館',
-  nanjingFuxing: '南京復興',
+  nanjingfuxing: '南京復興',
   songshan: '松山',
 }
 
-// 1. **修正 Prop 名稱**：從 stationKey 改為 station
 interface Props {
-  station: string // 路由傳入的英文 Key
+  stationKey: string
 }
 const props = defineProps<Props>()
 
-// 計算屬性：將英文 Key 轉換為中文站名 (用於 UI 顯示)
-const stationName = computed(() => stationMap[props.station] || '未知站')
+const stationName = computed(() => {
+  const key = props.stationKey?.toLowerCase().trim() || ''
+  return stationMap[key] || '未知'
+})
 
-// 邀約資料類型
+// 【修改】擴充資料介面，加入 Popup 需要的資訊
 interface Invite {
   id: number
   title: string
-  senderName: string // 模擬發送者名稱
+  senderName: string
   date: string
   day: string
   location: string
   hasChat: boolean
+  stationName: string // 新增: 用於顯示站名
+  googleMapLink: string // 新增: Google Map 連結
 }
 
-// 狀態：管理邀約列表
 const invites = ref<Invite[]>([])
 const isLoading = ref(true)
 
-/**
- * 模擬根據 stationKey 載入不同的邀約資料
- */
+// 【新增】Popup 狀態控制
+const showDetailPopup = ref(false)
+const selectedInvite = ref<Invite | null>(null)
+
 const loadInvites = (key: string) => {
   isLoading.value = true
-  // 模擬異步載入
+  const normalizedKey = key.toLowerCase().trim()
+
   setTimeout(() => {
-    if (key === 'Gongguan') {
+    if (normalizedKey === 'gongguan') {
       invites.value = [
         {
           id: 1,
-          title: '一起台大醉月湖散步',
-          senderName: '周芳廷',
+          title: '下課沒事想去河岸邊走走，有人要加一嗎', // 修改標題以符合截圖
+          senderName: '周彥廷',
           date: '2025/11/12',
           day: '三',
-          location: '水岸廣場',
+          location: '公館水岸廣場',
           hasChat: true,
+          stationName: '公館站',
+          googleMapLink:
+            'https://www.google.com/maps/place/%E5%85%AC%E9%A4%A8%E6%B0%B4%E5%B2%B8%E5%BB%A3%E5%A0%B4/@25.0112512,121.5284012,17z',
         },
         {
           id: 2,
@@ -111,6 +121,8 @@ const loadInvites = (key: string) => {
           day: '三',
           location: '水源市場',
           hasChat: false,
+          stationName: '公館站',
+          googleMapLink: 'https://maps.google.com/?q=水源市場',
         },
         {
           id: 3,
@@ -120,9 +132,11 @@ const loadInvites = (key: string) => {
           day: '四',
           location: '自來水博物館',
           hasChat: false,
+          stationName: '公館站',
+          googleMapLink: 'https://maps.google.com/?q=自來水博物館',
         },
       ]
-    } else if (key === 'Songshan') {
+    } else if (normalizedKey === 'songshan') {
       invites.value = [
         {
           id: 4,
@@ -132,41 +146,49 @@ const loadInvites = (key: string) => {
           day: '五',
           location: '饒河街夜市',
           hasChat: false,
+          stationName: '松山站',
+          googleMapLink: 'https://maps.google.com/?q=饒河街夜市',
         },
       ]
     } else {
       invites.value = []
     }
     isLoading.value = false
-    console.log(`[Data Mock] 已載入 ${invites.value.length} 筆 ${stationName.value} 站的邀約。`)
   }, 500)
 }
 
-// 監聽 station 變化，並載入對應資料
 watchEffect(() => {
-  loadInvites(props.station)
+  loadInvites(props.stationKey)
 })
 
-// 處理 InviteItem 發出的事件
+// 【修改】點擊「詳細資訊」時的邏輯
 const handleViewDetails = (id: number) => {
-  console.log(`[Action] 查看邀約 ID: ${id} 的詳細資訊`)
+  // 找到對應的邀約資料
+  const targetInvite = invites.value.find((i) => i.id === id)
+  if (targetInvite) {
+    selectedInvite.value = targetInvite
+    showDetailPopup.value = true
+    console.log(`[Action] 開啟詳細資訊: ${targetInvite.title}`)
+  }
+}
+
+// 【新增】關閉 Popup
+const closeDetailPopup = () => {
+  showDetailPopup.value = false
+  // 延遲清除資料避免動畫時內容突然消失 (可選)
+  setTimeout(() => {
+    selectedInvite.value = null
+  }, 200)
 }
 
 const handleAccept = (id: number) => {
+  // ... (維持原樣)
   console.log(`[Action] 接受邀約 ID: ${id}`)
-  // 實作接受邀約的邏輯 (可能更新狀態，並開啟聊天室)
-  console.log(`[Action Status] 您已接受邀約 ID: ${id}，準備進入聊天室 (模擬成功)。`)
-  // 模擬將此邀約從列表中移除或改變狀態
-  invites.value = invites.value
-    .map((i) => (i.id === id ? { ...i, hasChat: true } : i))
-    .filter((i) => i.id !== id) // 模擬被移除，因為已經處理
 }
 
 const handleReject = (id: number) => {
-  console.log(`[Action] 拒絕/刪除邀約 ID: ${id}`)
-  // 實作刪除邀約的邏輯 (僅從本地列表移除)
+  // ... (維持原樣)
   invites.value = invites.value.filter((i) => i.id !== id)
-  console.log(`[Action Status] 邀約 ID: ${id} 已從列表中移除 (模擬拒絕/刪除)。`)
 }
 
 const introContents = ref<string[]>([

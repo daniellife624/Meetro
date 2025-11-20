@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useLoadingStore } from '@/stores/modules/loading'
+import { useRoleStore } from '@/stores/modules/useRole'
 
+// --- Layouts & Views ---
 const WebLayout = () => import('@/views/web.vue')
 const BCMSLogin = () => import('@/views/bcms/login.vue')
 
@@ -17,12 +19,7 @@ const NotFound = () => import('@/views/404.vue')
 
 export const webRouteName = 'web'
 
-export const getWebRoute = (children: RouteRecordRaw[]): RouteRecordRaw => ({
-  path: '/web',
-  name: webRouteName,
-  component: WebLayout,
-  children,
-})
+// --- Route Definitions ---
 
 export const publicWebRoutes: RouteRecordRaw[] = [
   {
@@ -110,19 +107,16 @@ const router = createRouter({
         },
       ],
     },
-
     {
       path: '/web',
       name: webRouteName,
       component: WebLayout,
-      children: publicWebRoutes,
+      children: [...publicWebRoutes, ...privateWebRoutes],
     },
-
     {
       path: '/',
       redirect: { name: 'home' },
     },
-
     {
       path: '/:catchAll(.*)',
       name: 'NotFound',
@@ -139,38 +133,46 @@ const router = createRouter({
   },
 })
 
-// router.beforeEach((to, from, next) => {
-//   const loadingStore = useLoadingStore()
-//   loadingStore.setLoading(true, '正在切換頁面...')
+// --- Navigation Guards (整合您提供的邏輯) ---
 
-//   const requiresAuth = to.meta.requiresAuth
-//   const isLoggedIn = isUserLoggedInStub()
+router.beforeEach((to, from, next) => {
+  const loadingStore = useLoadingStore()
+  const roleStore = useRoleStore()
 
-//   if (requiresAuth && !isLoggedIn) {
-//     console.warn('Need login to access:', to.fullPath)
-//     next({ name: 'BCMSLogin', query: { redirect: to.fullPath } })
-//     loadingStore.setLoading(false)
-//   } else if (!requiresAuth && isLoggedIn && to.name === 'BCMSLogin') {
-//     next({ name: 'Profile' })
-//     loadingStore.setLoading(false)
-//   } else {
-//     next()
-//   }
-// })
+  // 開啟 Loading
+  loadingStore.setLoading(true, '載入中...')
 
-// router.afterEach((to, from) => {
-//   const loadingStore = useLoadingStore()
+  const requiresAuth = to.meta.requiresAuth
+  // 判斷是否登入：如果身分不是 'guest'，就視為已登入 (user 或 admin)
+  const isLoggedIn = !roleStore.isGuest
 
-//   setTimeout(() => {
-//     loadingStore.setLoading(false)
-//   }, 300)
+  if (requiresAuth && !isLoggedIn) {
+    // 1. 需要登入但未登入 -> 導向登入頁 (帶上 redirect 參數)
+    console.warn('[Router] Access denied. Redirecting to login.', to.fullPath)
+    next({ name: 'BCMSLogin', query: { redirect: to.fullPath } })
+    // 因為被導走了，這裡要手動關閉 loading (或者依靠 afterEach，但保險起見先關)
+    loadingStore.setLoading(false)
+  } else if (to.name === 'BCMSLogin' && isLoggedIn) {
+    // 2. 已登入卻想去登入頁 -> 導向首頁 (避免重複登入)
+    next({ name: 'home' })
+    loadingStore.setLoading(false)
+  } else {
+    // 3. 通行
+    next()
+  }
+})
 
-//   const defaultTitle = 'Meetro App'
-//   document.title = (to.meta.title ? to.meta.title + ' | ' : '') + defaultTitle
-// })
+router.afterEach((to) => {
+  const loadingStore = useLoadingStore()
 
-// function isUserLoggedInStub(): boolean {
-//   return false
-// }
+  // 延遲關閉 Loading 以呈現轉場效果
+  setTimeout(() => {
+    loadingStore.setLoading(false)
+  }, 300)
+
+  // 設定網頁標題
+  const defaultTitle = 'Meetro - 相遇地圖'
+  document.title = (to.meta.title ? to.meta.title + ' | ' : '') + defaultTitle
+})
 
 export default router

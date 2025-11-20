@@ -1,92 +1,108 @@
 <template>
   <header
-    class="header flex items-center w-full h-16 sm:h-20 2xl:h-24 bg-white px-2 md:px-4 xl:px-8 2xl:px-10 border-b border-gray-300"
+    class="w-full h-16 sm:h-20 bg-[#008659] text-white px-4 md:px-8 flex items-center justify-between shadow-md font-sans z-50 relative"
   >
-    <!-- 漢堡菜單圖標 (行動裝置) -->
-    <div
-      class="hamburger-icon xl:hidden flex items-center justify-center w-12 h-12 rounded-full cursor-pointer transition transform hover:bg-gray-200 duration-500"
-      @click="isMenuShow = !isMenuShow"
-    >
-      <HamburgerIcon />
+    <div class="flex items-center cursor-pointer" @click="goHome">
+      <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-sm mr-3 flex-shrink-0"></div>
+
+      <h1 class="text-lg sm:text-xl font-bold tracking-wide truncate">
+        <span v-if="currentRole === 'admin'">Meetro: 相遇地圖 ｜ 後臺管理端</span>
+        <span v-else>Meetro: 相遇地圖</span>
+      </h1>
     </div>
 
-    <!-- Meetro Logo / Home Link -->
-    <router-link
-      :to="{ name: 'home' }"
-      class="flex items-center space-x-2 text-[#286047] text-xl font-bold h-full w-20 sm:w-24 lg:w-28 xl:w-32 2xl:w-36"
-    >
-      <div class="flex items-center h-full">
-        <div
-          class="w-6 h-6 sm:w-8 sm:h-8 bg-[#286047] rounded-full flex items-center justify-center text-white text-base font-extrabold mr-1"
+    <div class="flex items-center gap-4 sm:gap-6 md:gap-8 text-sm sm:text-base font-medium">
+      <template v-if="currentRole === 'guest'">
+        <button
+          @click="goTeam"
+          class="flex items-center gap-2 hover:text-green-100 transition-colors"
         >
-          M
-        </div>
-        <span class="text-sm sm:text-lg font-extrabold hidden lg:inline">Meetro</span>
-      </div>
-    </router-link>
+          <SvgItem name="heart-hand" size="5" />
+          <span class="hidden sm:inline">開發團隊</span>
+        </button>
+        <button
+          @click="goLogin"
+          class="flex items-center gap-2 hover:text-green-100 transition-colors"
+        >
+          <SvgItem name="login" size="5" />
+          <span>登入</span>
+        </button>
+      </template>
 
-    <!-- 功能列 (桌面版) -->
-    <div class="hidden xl:flex items-center ml-auto">
-      <template v-for="(item, index) in navList" :key="index">
-        <!-- 假設 NavButton 能夠處理 item 數據並渲染 RouterLink 或下拉菜單 -->
-        <NavButton :item="item" />
-        <template v-if="index !== navList.length - 1">
-          <!-- Divider 是分隔線組件 -->
-          <Divider style="height: 36px" vertical />
-        </template>
+      <template v-else-if="currentRole === 'user'">
+        <button
+          @click="goHistory"
+          class="flex items-center gap-2 hover:text-green-100 transition-colors"
+        >
+          <SvgItem name="history" size="5" />
+          <span class="hidden sm:inline">邀約歷史</span>
+        </button>
+        <button
+          @click="goTeam"
+          class="flex items-center gap-2 hover:text-green-100 transition-colors"
+        >
+          <SvgItem name="heart-hand" size="5" />
+          <span class="hidden sm:inline">開發團隊</span>
+        </button>
+        <button
+          @click="goProfile"
+          class="flex items-center gap-2 hover:text-green-100 transition-colors"
+        >
+          <SvgItem name="user" size="5" />
+          <span class="hidden sm:inline">我的帳戶</span>
+        </button>
+        <button
+          @click="handleLogout"
+          class="flex items-center gap-2 hover:text-green-100 transition-colors"
+        >
+          <SvgItem name="logout" size="5" />
+          <span>登出</span>
+        </button>
+      </template>
+
+      <template v-else-if="currentRole === 'admin'">
+        <button
+          @click="handleLogout"
+          class="flex items-center gap-2 hover:text-green-100 transition-colors"
+        >
+          <SvgItem name="logout" size="5" />
+          <span>登出</span>
+        </button>
       </template>
     </div>
-
-    <!-- 用戶按鈕 (登入狀態下顯示) -->
-    <!-- UserBtn 應該包含登出和個人檔案下拉菜單的邏輯 -->
-    <UserBtn v-if="isLogin" class="ml-auto xl:ml-[unset]" />
-
-    <!-- 手機板導航抽屜 -->
-    <Transition name="slide">
-      <DrawerNavigation
-        v-click-outside="{
-          handler: () => (isMenuShow = false),
-          safelist: ['.header .hamburger-icon'],
-        }"
-        v-show="isMenuShow"
-        v-model="isMenuShow"
-      />
-    </Transition>
   </header>
 </template>
 
-<script setup>
-import DrawerNavigation from '@/components/shared/DrawerNavigation.vue'
-import NavButton from '@/components/buttons/NavButton.vue'
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useRoleStore } from '@/stores/modules/useRole'
+// 引入統一管理的 SVG 組件
+import SvgItem from '@/components/icons/SvgItem.vue'
 
-import { ref, computed } from 'vue'
-import { useStore } from '@/stores'
-import UserBtn from './UserBtn.vue'
-import Divider from './Divider.vue'
-import { useRole } from '@/composables/usePiniaOrRouter'
+const router = useRouter()
+const roleStore = useRoleStore()
 
-/*Icons*/
-import HamburgerIcon from '@/components/icons/HamburgerIcon.vue'
+// 使用 store 的 computed 屬性
+const currentRole = computed(() => roleStore.currentRole)
 
-const isMenuShow = ref(false)
+// --- 導航邏輯 ---
+const goHome = () => router.push('/')
+const goTeam = () => router.push('/web/about')
 
-// 假設 useStore 提供了 navGrouped 列表
-const store = useStore()
-const navList = computed(() => store.navGrouped)
+const goLogin = () => {
+  // 模擬登入流程：切換 Store 狀態並導航
+  roleStore.loginAsUser()
+  // 實際專案這裡應該導航到登入頁，例如 router.push('/login')
+}
 
-// 假設 useRole 提供了 isLogin 狀態
-const { isLogin } = useRole()
+const goHistory = () => router.push('/web/history')
+const goProfile = () => router.push('/web/profile')
+
+const handleLogout = () => {
+  if (confirm('確定要登出嗎？')) {
+    roleStore.logout()
+    router.push('/')
+  }
+}
 </script>
-
-<style scoped>
-/* 手機版菜單滑入/滑出動畫 */
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.5s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-100%);
-}
-</style>

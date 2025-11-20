@@ -1,7 +1,5 @@
 <template>
-  <!-- 修正 1: 確保兩側都能垂直拉伸 -->
   <div class="flex flex-col md:flex-row h-screen w-full bg-[#f1f8e9] overflow-hidden font-sans">
-    <!-- 左側：步驟指南 -->
     <div
       class="w-full md:w-1/3 bg-white border-r border-gray-200 p-6 flex flex-col overflow-y-auto max-h-full md:max-h-screen"
     >
@@ -10,7 +8,6 @@
       </h1>
       <div class="intro-cards-scroll-area flex-grow overflow-y-auto pr-3">
         <div class="space-y-6">
-          <!-- 假設 MeetroIntroCard 在 components/cards/ 路徑下 -->
           <MeetroIntroCard
             v-for="(content, index) in introContents"
             :key="index"
@@ -21,16 +18,12 @@
       </div>
     </div>
 
-    <!-- 右側：發送邀約表單區域 -->
     <div class="flex flex-col w-full md:w-2/3 p-6 relative overflow-y-auto bg-white h-full">
       <h2 class="text-3xl font-extrabold text-[#286047] mb-6 border-b pb-3">
-        <!-- 修正: 使用更友善的預設名稱 -->
         發送新邀約：{{ stationName }}站
       </h2>
 
-      <!-- 表單容器 -->
       <div class="space-y-6 flex-grow">
-        <!-- 1. 【事】邀約事件 (Title & Description) -->
         <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
           <label for="invite-title" class="block text-lg font-semibold text-[#1b5e20] mb-2">
             【事】邀約主題 <span class="text-red-500">*</span>
@@ -46,7 +39,6 @@
           <p class="text-right text-xs text-gray-500 mt-1">{{ invitation.title.length }} / 50 字</p>
         </div>
 
-        <!-- 2. 【時】邀約時間 -->
         <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
           <label for="invite-time" class="block text-lg font-semibold text-[#1b5e20] mb-2">
             【時】邀約時間 <span class="text-red-500">*</span>
@@ -59,11 +51,9 @@
           />
         </div>
 
-        <!-- 3. 【地】地圖區域 (使用 Google Maps API) -->
         <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
           <label class="block text-lg font-semibold text-[#1b5e20] mb-2"> 【地】邀約地點 </label>
 
-          <!-- 地點輸入 (使用 Google Places Autocomplete) -->
           <input
             id="autocomplete-input"
             type="text"
@@ -72,18 +62,14 @@
             class="w-full p-3 mb-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#286047] focus:border-transparent transition-colors"
           />
 
-          <!-- Google Map 容器 -->
           <div id="map" class="w-full h-96 rounded-lg shadow-md border-2 border-[#286047]"></div>
 
-          <!-- 顯示選定的經緯度 (可選，用於確認) -->
           <p class="text-sm text-gray-600 mt-2">
-            選定座標：
-            <span class="font-mono text-xs text-red-600">{{ invitation.latLng }}</span>
+            選定座標：<span class="font-mono text-xs text-red-600">{{ invitation.latLng }}</span>
           </p>
         </div>
       </div>
 
-      <!-- 發送按鈕 -->
       <div class="flex justify-end items-center pt-6 border-t border-gray-200 mt-6">
         <button
           @click="sendInvitation"
@@ -94,12 +80,55 @@
         </button>
       </div>
     </div>
+
+    <div
+      v-if="showSuccessModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"
+    >
+      <div
+        class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl text-center transform transition-all scale-100"
+      >
+        <div
+          class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <svg class="w-8 h-8 text-[#286047]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="3"
+              d="M5 13l4 4L19 7"
+            ></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-extrabold text-gray-800 mb-2">邀約發送成功！</h3>
+        <p class="text-gray-600 mb-6">
+          您的邀約已發布到 {{ stationName }} 站，等待有緣人與您聯繫。
+        </p>
+        <div class="space-y-3">
+          <button
+            @click="goHome"
+            class="w-full py-3 bg-[#286047] text-white font-bold rounded-xl hover:bg-green-800 transition"
+          >
+            回到首頁
+          </button>
+          <button
+            @click="showSuccessModal = false"
+            class="w-full py-3 text-gray-500 font-bold rounded-xl hover:bg-gray-100 transition"
+          >
+            繼續留在本頁
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, defineProps, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import MeetroIntroCard from '@/components/cards/MeetroIntroCard.vue'
+
+const router = useRouter()
 
 const stationMap: Record<string, string> = {
   xindian: '新店',
@@ -108,40 +137,33 @@ const stationMap: Record<string, string> = {
   songshan: '松山',
 }
 
-// Google Maps 相關變數
-declare const google: any // 宣告 google 變數
+// Google Maps 變數
+declare const google: any
 let map: any
 let marker: any
 
 interface Props {
-  station: string // 路由傳入的英文 Key
+  stationKey: string
 }
 const props = defineProps<Props>()
 
 const stationName = computed(() => {
-  // 將 props.station 轉換為小寫，並移除前後空白
-  const key = props.station?.toLowerCase().trim() ?? ''
-
-  // 檢查 key 是否為空。如果是空字串（例如路由沒有參數），則提供一個預設的描述性名稱
-  if (!key) {
-    return '松山新店線任一站'
-  }
-
-  // 查閱站名，如果查無結果，則顯示「未知站」
+  const key = props.stationKey?.toLowerCase().trim() ?? ''
+  if (!key) return '松山新店線任一站'
   return stationMap[key] || '未知站'
 })
 
-// 狀態：管理邀約表單
 const invitation = ref({
   title: '',
-  time: '', // datetime-local 格式 'YYYY-MM-DDTHH:MM'
-  locationName: '', // 地點名稱
-  latLng: '', // 經緯度 'lat,lng'
-  // 即使 stationKey 為空，也儲存原始 props.station，但在地圖初始化時會使用預設值
-  stationKey: props.station,
+  time: '',
+  locationName: '',
+  latLng: '',
+  // 【修正重點】這裡改成 props.stationKey
+  stationKey: props.stationKey,
 })
 
-// 步驟指南內容定義
+const showSuccessModal = ref(false)
+
 const introContents = ref<string[]>([
   'STEP 1: 選擇捷運站\n選擇松山新店線(綠線)想探索的捷運站。',
   'STEP 2: 確認目的\n1. 想找人一起參與 (發送方)\n2. 尋找有趣活動 (選擇方)',
@@ -150,20 +172,15 @@ const introContents = ref<string[]>([
   'STEP 5: 成功配對\n當雙方確認並完成所有步驟後，恭喜您！邀約成功，準備出發吧！',
 ])
 
-// 表單驗證
 const isFormValid = computed(() => {
   return (
     invitation.value.title.trim() !== '' &&
     invitation.value.time !== '' &&
-    invitation.value.latLng !== '' // 必須選擇地點
+    invitation.value.latLng !== ''
   )
 })
 
-/**
- * 初始化 Google Map (必須為全域函式以供 Google Maps API 呼叫)
- */
 const initMap = () => {
-  // 將 initialCoords 的 Key 全部改為小寫
   const initialCoords: Record<string, { lat: number; lng: number }> = {
     gongguan: { lat: 25.0135, lng: 121.5365 },
     xindian: { lat: 24.9491, lng: 121.5422 },
@@ -171,12 +188,9 @@ const initMap = () => {
     songshan: { lat: 25.0504, lng: 121.5732 },
   }
 
-  // 將 props.station 轉換為小寫並移除空格來查閱座標，預設為 'gongguan'
-  const stationKey = props.station?.toLowerCase().trim() ?? 'gongguan'
-  // 如果 stationKey 無效，則使用 'gongguan' 作為中心點
-  const center = initialCoords[stationKey] || initialCoords['gongguan']
+  const sKey = props.stationKey?.toLowerCase().trim() ?? 'gongguan'
+  const center = initialCoords[sKey] || initialCoords['gongguan']
 
-  // 2. 創建地圖
   map = new google.maps.Map(document.getElementById('map') as HTMLElement, {
     center: center,
     zoom: 15,
@@ -185,107 +199,74 @@ const initMap = () => {
     fullscreenControl: false,
   })
 
-  // 3. 創建標記
   marker = new google.maps.Marker({
     position: center,
     map: map,
     title: stationName.value,
   })
 
-  // 初始化地點名稱和經緯度
   invitation.value.locationName = stationName.value + '捷運站周邊'
   invitation.value.latLng = `${center.lat},${center.lng}`
 
-  // 4. 設定地點自動完成 (Autocomplete)
   const input = document.getElementById('autocomplete-input') as HTMLInputElement
   const autocomplete = new google.maps.places.Autocomplete(input)
   autocomplete.bindTo('bounds', map)
 
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace()
-    if (!place.geometry) {
-      console.warn('Place not found or has no geometry:', place.name)
-      return
-    }
+    if (!place.geometry) return
 
-    // 更新地圖視圖
     map.setCenter(place.geometry.location)
     map.setZoom(17)
-
-    // 更新標記位置
     marker.setPosition(place.geometry.location)
 
-    // 更新邀約資料
     invitation.value.locationName = place.name || ''
     invitation.value.latLng = `${place.geometry.location.lat()},${place.geometry.location.lng()}`
-    console.log('[Map] 地點已透過搜尋選擇:', invitation.value.locationName)
   })
 
-  // 5. 點擊地圖選擇地點
   map.addListener('click', (e: any) => {
-    // 更新標記位置
     marker.setPosition(e.latLng)
-
-    // 進行反向地理編碼 (Reverse Geocoding)
     const geocoder = new google.maps.Geocoder()
     geocoder.geocode({ location: e.latLng }, (results: any, status: any) => {
       if (status === 'OK' && results[0]) {
         invitation.value.locationName = results[0].formatted_address || '地圖點擊位置'
       } else {
         invitation.value.locationName = '地圖點擊位置'
-        console.warn('Reverse Geocode failed due to: ' + status)
       }
-
-      // 更新邀約資料
       invitation.value.latLng = `${e.latLng.lat()},${e.latLng.lng()}`
-      console.log('[Map] 地點已透過地圖點擊選擇:', invitation.value.locationName)
     })
   })
 }
 
-/**
- * 模擬發送邀約邏輯
- */
 const sendInvitation = () => {
-  if (!isFormValid.value) {
-    console.warn('[Validation] 請填寫完整的邀約資訊 (主題、時間、地點)。')
-    // TODO: 請使用自定義的 Modal UI 來顯示錯誤訊息，避免使用 window.alert()
-    return
-  }
+  if (!isFormValid.value) return
 
-  // 模擬發送資料
+  // 模擬 API 發送資料
   const inviteData = {
     ...invitation.value,
     createdAt: new Date().toISOString(),
     status: 'pending',
   }
+  console.log('邀約資料已送出:', inviteData)
 
-  console.log('[Data Operation] 準備發送邀約資料 (模擬):', inviteData)
+  // 顯示成功視窗
+  showSuccessModal.value = true
 
-  // 實作發送到後端的邏輯，這裡使用 console.log 替代
-  console.log('--- 模擬邀約已發送！ ---')
-  console.log(`發送站點 Key: ${inviteData.stationKey}, 中文站名: ${stationName.value}`)
-  console.log(`邀約標題: ${inviteData.title}`)
-  console.log(`邀約時間: ${inviteData.time}`)
-  console.log(`邀約地點: ${inviteData.locationName} (座標: ${inviteData.latLng})`)
-  console.log('---------------------------')
-
-  // TODO: 成功後導航到等待配對的頁面，並使用 Custom Modal 顯示成功訊息
-
-  // 清空表單 (可選)
+  // 清空表單
   invitation.value.title = ''
   invitation.value.time = ''
-  invitation.value.locationName = ''
-  invitation.value.latLng = ''
+  // 地點通常保留使用者上次選擇的位置，體驗較佳
 }
 
-// 將 initMap 函式暴露給 window，讓 Google Maps API 載入完成後可以呼叫
+const goHome = () => {
+  router.push({ name: 'Home' }) // 假設首頁路由名稱為 Home，請依實際狀況調整
+}
+
 ;(window as any).initMap = initMap
 
 onMounted(() => {
-  // 載入 Google Maps API
   const script = document.createElement('script')
-  // 注意：實際應用中，您需要替換為您的 Google Maps API Key
+  // 請記得替換為您的 API Key
   script.src =
     'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places&callback=initMap'
   script.async = true
@@ -295,17 +276,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 隱藏 datetime-local 的部分瀏覽器預設箭頭 */
 input[type='datetime-local']::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
-
-/* 確保時間選擇器能夠選到分鐘 */
 input[type='datetime-local'] {
-  min-height: 3.5rem; /* 增加高度，使其更易點擊 */
+  min-height: 3.5rem;
 }
-
-/* 滾動條樣式 */
 .intro-cards-scroll-area::-webkit-scrollbar {
   width: 8px;
 }

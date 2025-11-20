@@ -32,12 +32,13 @@ import SvgItem from '@/components/icons/SvgItem.vue'
 
 defineProps<{
   title: string
-  confirmText: string
+  // 修改：加上 ? 變為可選屬性
+  confirmText?: string
   cancelCallback: () => void
-  confirmCallback: () => void // 這裡的 callback 在主頁面被設置為空，實際邏輯在 slot 內處理
-  type?: string // 未使用，但保留
-  useForm?: boolean // 未使用，但保留
-  id?: string // 未使用，但保留
+  confirmCallback?: () => void
+  type?: string
+  useForm?: boolean
+  id?: string
 }>()
 </script>
 
