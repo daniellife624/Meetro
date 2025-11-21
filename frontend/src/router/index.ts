@@ -4,7 +4,11 @@ import { useRoleStore } from '@/stores/modules/useRole'
 
 // --- Layouts & Views ---
 const WebLayout = () => import('@/views/web.vue')
-const BCMSLogin = () => import('@/views/bcms/login.vue')
+const BCMSLogin = () => import('@/views/bcms/login.vue') // 後台登入
+
+// 前台使用者認證頁面
+const WebLogin = () => import('@/views/web/login.vue')
+const WebRegister = () => import('@/views/web/register.vue')
 
 const HomePage = () => import('@/views/web/index.vue')
 const AboutPage = () => import('@/views/web/about.vue')
@@ -31,6 +35,18 @@ export const publicWebRoutes: RouteRecordRaw[] = [
       isPublic: true,
       requiresAuth: false,
     },
+  },
+  {
+    path: 'login',
+    name: 'WebLogin',
+    component: WebLogin,
+    meta: { title: '會員登入', isPublic: true, requiresAuth: false },
+  },
+  {
+    path: 'register',
+    name: 'WebRegister',
+    component: WebRegister,
+    meta: { title: '會員註冊', isPublic: true, requiresAuth: false },
   },
   {
     path: 'invite/sender/:stationKey',
@@ -133,27 +149,29 @@ const router = createRouter({
   },
 })
 
-// --- Navigation Guards (整合您提供的邏輯) ---
+// --- Navigation Guards ---
 
 router.beforeEach((to, from, next) => {
   const loadingStore = useLoadingStore()
   const roleStore = useRoleStore()
 
-  // 開啟 Loading
   loadingStore.setLoading(true, '載入中...')
 
   const requiresAuth = to.meta.requiresAuth
   // 判斷是否登入：如果身分不是 'guest'，就視為已登入 (user 或 admin)
   const isLoggedIn = !roleStore.isGuest
 
+  // 定義哪些頁面是「登入後不應該再看到」的 (登入、註冊、後台登入)
+  const isAuthPage = ['WebLogin', 'WebRegister', 'BCMSLogin'].includes(to.name as string)
+
   if (requiresAuth && !isLoggedIn) {
-    // 1. 需要登入但未登入 -> 導向登入頁 (帶上 redirect 參數)
-    console.warn('[Router] Access denied. Redirecting to login.', to.fullPath)
-    next({ name: 'BCMSLogin', query: { redirect: to.fullPath } })
-    // 因為被導走了，這裡要手動關閉 loading (或者依靠 afterEach，但保險起見先關)
+    // 1. 需要登入但未登入 -> 導向使用者登入頁 (WebLogin)
+    console.warn('[Router] Access denied. Redirecting to WebLogin.', to.fullPath)
+    next({ name: 'WebLogin', query: { redirect: to.fullPath } })
     loadingStore.setLoading(false)
-  } else if (to.name === 'BCMSLogin' && isLoggedIn) {
-    // 2. 已登入卻想去登入頁 -> 導向首頁 (避免重複登入)
+  } else if (isAuthPage && isLoggedIn) {
+    // 2. 已登入卻想去 登入/註冊 頁面 -> 導向首頁 (避免重複登入)
+    console.warn('[Router] Already logged in. Redirecting to home.')
     next({ name: 'home' })
     loadingStore.setLoading(false)
   } else {
@@ -164,13 +182,9 @@ router.beforeEach((to, from, next) => {
 
 router.afterEach((to) => {
   const loadingStore = useLoadingStore()
-
-  // 延遲關閉 Loading 以呈現轉場效果
   setTimeout(() => {
     loadingStore.setLoading(false)
   }, 300)
-
-  // 設定網頁標題
   const defaultTitle = 'Meetro - 相遇地圖'
   document.title = (to.meta.title ? to.meta.title + ' | ' : '') + defaultTitle
 })

@@ -11,7 +11,7 @@
       </h1>
     </div>
 
-    <div class="flex items-center gap-4 sm:gap-6 md:gap-8 text-sm sm:text-base font-medium">
+    <div class="flex items-center gap-4 sm:gap-6 md:gap-8 text-sm sm:text-base font-bold">
       <template v-if="currentRole === 'guest'">
         <button
           @click="goTeam"
@@ -77,13 +77,11 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoleStore } from '@/stores/modules/useRole'
-// 引入統一管理的 SVG 組件
 import SvgItem from '@/components/icons/SvgItem.vue'
 
 const router = useRouter()
 const roleStore = useRoleStore()
 
-// 使用 store 的 computed 屬性
 const currentRole = computed(() => roleStore.currentRole)
 
 // --- 導航邏輯 ---
@@ -91,9 +89,8 @@ const goHome = () => router.push('/')
 const goTeam = () => router.push('/web/about')
 
 const goLogin = () => {
-  // 模擬登入流程：切換 Store 狀態並導航
-  roleStore.loginAsUser()
-  // 實際專案這裡應該導航到登入頁，例如 router.push('/login')
+  // 【修正】直接導航到 WebLogin 頁面，而非在這裡切換 Store 狀態
+  router.push({ name: 'WebLogin' })
 }
 
 const goHistory = () => router.push('/web/history')

@@ -9,6 +9,41 @@
     stroke-linecap="round"
     stroke-linejoin="round"
   >
+    <template v-if="name === 'user-solid'">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </template>
+
+    <template v-if="name === 'lock-solid'">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    </template>
+
+    <template v-if="name === 'lock'">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    </template>
+
+    <template v-if="name === 'calendar'">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+    </template>
+
+    <template v-if="name === 'gender'">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"></path>
+      <path d="M12 12v7"></path>
+      <path d="M9 19h6"></path>
+    </template>
+
+    <template v-if="name === 'smile'">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+      <line x1="9" y1="9" x2="9.01" y2="9"></line>
+      <line x1="15" y1="9" x2="15.01" y2="9"></line>
+    </template>
+
     <template v-if="name === 'history'">
       <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
       <path d="M3 3v5h5" />
@@ -96,6 +131,7 @@ type IconName =
   | 'history'
   | 'heart-hand'
   | 'user'
+  | 'user-solid'
   | 'login'
   | 'logout'
   | 'send'
@@ -107,6 +143,11 @@ type IconName =
   | 'location-dot'
   | 'map-marker-alt'
   | 'comment-dots'
+  | 'lock'
+  | 'lock-solid'
+  | 'calendar'
+  | 'gender'
+  | 'smile'
 
 const props = defineProps<{
   name: IconName
