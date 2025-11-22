@@ -1,102 +1,120 @@
 <template>
-  <!-- 主抽屜容器，使用 fixed 定位和 Tailwind/Windi CSS 類別控制開關狀態與過渡效果 -->
-  <div
-    :class="[
-      'fixed inset-0 z-50 transition-transform duration-300',
-      isDrawerOpen ? 'translate-x-0' : '-translate-x-full',
-    ]"
-  >
-    <!-- 1. 遮罩層 (點擊關閉) -->
-    <div class="absolute inset-0 bg-black/50" @click="closeDrawer" aria-label="Close menu"></div>
+  <div class="relative z-[60]">
+    <transition
+      enter-active-class="transition-opacity ease-linear duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity ease-linear duration-300"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="modelValue"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        @click="closeDrawer"
+      ></div>
+    </transition>
 
-    <!-- 2. 抽屜內容面板 -->
-    <div class="relative w-64 max-w-xs h-full bg-white shadow-2xl p-4 flex flex-col">
-      <!-- 抽屜標頭 / 關閉按鈕 -->
-      <div class="flex justify-between items-center pb-4 border-b border-gray-100">
-        <h2 class="text-xl font-bold text-gray-800">導航選單</h2>
-        <button @click="closeDrawer" class="text-gray-500 hover:text-red-500 transition-colors">
-          <!-- 關閉圖標 (Lucide X) -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-x"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
-        </button>
+    <transition
+      enter-active-class="transition ease-in-out duration-300 transform"
+      enter-from-class="translate-x-full"
+      enter-to-class="translate-x-0"
+      leave-active-class="transition ease-in-out duration-300 transform"
+      leave-from-class="translate-x-0"
+      leave-to-class="translate-x-full"
+    >
+      <div
+        v-if="modelValue"
+        class="fixed top-0 right-0 h-full w-64 bg-white shadow-2xl p-6 flex flex-col text-left"
+      >
+        <div class="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
+          <h2 class="text-xl font-bold text-[#008659]">導航選單</h2>
+          <button @click="closeDrawer" class="text-gray-400 hover:text-gray-600 transition">
+            <SvgItem name="x" size="6" />
+          </button>
+        </div>
+
+        <nav class="flex-grow space-y-2 w-full">
+          <template v-if="currentRole === 'guest'">
+            <a @click="$emit('go-team')" class="nav-item">
+              <SvgItem name="heart-hand" size="5" />
+              <span>開發團隊</span>
+            </a>
+            <a @click="$emit('go-login')" class="nav-item text-[#008659] bg-green-50">
+              <SvgItem name="login" size="5" />
+              <span>登入 / 註冊</span>
+            </a>
+          </template>
+
+          <template v-else-if="currentRole === 'user'">
+            <a @click="$emit('go-home')" class="nav-item">
+              <SvgItem name="location-dot" size="5" />
+              <span>回到地圖</span>
+            </a>
+            <a @click="$emit('go-history')" class="nav-item">
+              <SvgItem name="history" size="5" />
+              <span>邀約歷史</span>
+            </a>
+            <a @click="$emit('go-profile')" class="nav-item">
+              <SvgItem name="user" size="5" />
+              <span>我的帳戶</span>
+            </a>
+            <a @click="$emit('go-team')" class="nav-item">
+              <SvgItem name="heart-hand" size="5" />
+              <span>開發團隊</span>
+            </a>
+          </template>
+
+          <template v-else-if="currentRole === 'admin'">
+            <div class="text-sm text-gray-400 px-0 mb-2 font-bold">管理員功能</div>
+            <a class="nav-item opacity-50 cursor-not-allowed">
+              <SvgItem name="users" size="5" />
+              <span>會員管理</span>
+            </a>
+          </template>
+        </nav>
+
+        <div v-if="currentRole !== 'guest'" class="pt-4 border-t border-gray-100 w-full">
+          <a @click="$emit('logout')" class="nav-item text-red-500 hover:bg-red-50">
+            <SvgItem name="logout" size="5" />
+            <span>登出系統</span>
+          </a>
+        </div>
       </div>
-
-      <!-- 導航連結 -->
-      <nav class="mt-4 space-y-2 flex-grow">
-        <a
-          href="#"
-          class="block p-2 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-        >
-          首頁
-        </a>
-        <a
-          href="#"
-          class="block p-2 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-        >
-          個人檔案
-        </a>
-        <a
-          href="#"
-          class="block p-2 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-        >
-          設定
-        </a>
-        <!-- 您可以在此處新增更多連結 -->
-      </nav>
-
-      <!-- 底部資訊 (可選) -->
-      <div class="pt-4 border-t border-gray-100 text-sm text-gray-500">目前登入使用者.</div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import type { Ref } from 'vue'
+import SvgItem from '@/components/icons/SvgItem.vue'
 
-// 定義 props，以便從父組件接收 modelValue (控制開關)
-const props = defineProps<{
+defineProps<{
   modelValue: boolean
+  currentRole: string
 }>()
 
-// 定義 emit，用於更新父組件的 v-model 狀態
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([
+  'update:modelValue',
+  'go-home',
+  'go-login',
+  'go-history',
+  'go-team',
+  'go-profile',
+  'logout',
+])
 
-const isDrawerOpen: Ref<boolean> = ref(props.modelValue)
-
-// 監聽 modelValue 的外部變化，同步抽屜狀態
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    isDrawerOpen.value = newVal
-  },
-)
-
-// 關閉抽屜並通知父組件
 const closeDrawer = () => {
-  isDrawerOpen.value = false
   emit('update:modelValue', false)
 }
 </script>
 
-<!-- 
-***重要修正：此處已移除 lang="scss" 屬性。***
-現在這個區塊只會使用標準 CSS，不會再觸發 sass-embedded 依賴錯誤。
-所有樣式都透過 Windi CSS 類別處理。
--->
 <style scoped>
-/* 這裡可以放置任何需要自定義的標準 CSS */
+/* 【修改重點】
+  1. -mx-4: 讓背景往左拉出 1rem (抵銷父層的部分 padding)
+  2. w-[calc(100%+2rem)]: 補回被拉出的寬度，讓背景填滿
+  3. px-4: 保持內容內縮 1rem，這樣圖示就會剛好回到與標題對齊的位置
+*/
+.nav-item {
+  @apply -mx-4 w-[calc(100%+2rem)] flex items-center justify-start gap-3 px-4 py-3 rounded-lg text-gray-700 font-bold cursor-pointer transition-colors hover:bg-gray-100;
+}
 </style>
