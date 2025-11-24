@@ -19,6 +19,7 @@ const ReceiverView = () => import('@/views/web/ReceiverView.vue')
 const HistoryPage = () => import('@/views/web/history.vue')
 const ProfilePage = () => import('@/views/web/profile.vue')
 const NotFound = () => import('@/views/404.vue')
+const EmaWallView = () => import('@/views/web/EmaWallView.vue')
 
 export const webRouteName = 'web'
 
@@ -62,6 +63,17 @@ export const publicWebRoutes: RouteRecordRaw[] = [
     name: 'About',
     component: AboutPage,
     meta: { title: '關於我們', isPublic: true, requiresAuth: false },
+  },
+  {
+    path: 'ema/:stationKey',
+    name: 'EmaWall',
+    component: EmaWallView,
+    props: true,
+    meta: {
+      title: '站點繪馬牆',
+      isPublic: true,
+      requiresAuth: false,
+    },
   },
 ]
 

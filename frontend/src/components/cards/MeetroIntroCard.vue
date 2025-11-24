@@ -5,8 +5,8 @@
     <div
       class="flex-shrink-0 w-10 h-10 bg-[#286047] text-white rounded-full flex items-center justify-center shadow-md mr-4"
     >
-      <component v-if="icon" :is="icon" class="w-5 h-5" />
-      <span v-else class="font-black text-lg">{{ step }}</span>
+      <SvgItem v-if="iconName" :name="iconName" size="5" />
+      <span v-else class="font-black text-lg">{{ stepNumber }}</span>
     </div>
 
     <div class="flex-grow">
@@ -19,14 +19,15 @@
 </template>
 
 <script setup lang="ts">
-import type { Component } from 'vue'
+// 引入 SvgItem
+import SvgItem from '@/components/icons/SvgItem.vue'
 
-// 定義明確的 Props，不做任何複雜運算
+// 修改 Props 定義
 defineProps<{
-  step: number
+  stepNumber: number
   title: string
   content: string
-  icon?: Component // 可選屬性
+  iconName?: string
 }>()
 </script>
 

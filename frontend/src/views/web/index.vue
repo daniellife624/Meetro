@@ -11,10 +11,10 @@
           <MeetroIntroCard
             v-for="(step, index) in introSteps"
             :key="index"
-            :step="index + 1"
+            :step-number="index + 1"
             :title="step.title"
             :content="step.content"
-            :icon="step.icon"
+            :icon-name="step.icon"
           />
         </div>
       </div>
@@ -24,19 +24,29 @@
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 class="text-3xl font-extrabold text-[#286047] mb-3 sm:mb-0">捷運 松山新店線 地圖</h1>
 
-        <button
-          @click="openPopup"
-          class="px-6 py-2 bg-[#286047] text-white font-bold rounded-full shadow-lg hover:bg-green-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-          :disabled="!selectedStationKey"
-        >
-          開始探索 {{ selectedStationName }}站
-        </button>
+        <div class="flex gap-3">
+          <button
+            @click="goToEmaWall"
+            class="px-5 py-2 bg-white text-[#286047] border-2 border-[#286047] font-bold rounded-full shadow hover:bg-green-50 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            :disabled="!selectedStationKey"
+          >
+            <span> {{ selectedStationName }} 繪馬牆</span>
+          </button>
+
+          <button
+            @click="openPopup"
+            class="px-6 py-2 bg-[#286047] text-white font-bold rounded-full shadow-lg hover:bg-green-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            :disabled="!selectedStationKey"
+          >
+            開始探索 {{ selectedStationName }}站
+          </button>
+        </div>
       </div>
 
       <div
-        class="flex-grow bg-[#E8F5E9] border border-[#C8E6C9] rounded-xl shadow-inner mb-6 flex items-center justify-center relative min-h-[300px] p-4"
+        class="flex-grow bg-[#E8F5E9] border border-[#C8E6C9] rounded-xl shadow-inner mb-6 flex items-start justify-center relative min-h-[300px] p-4 pt-10"
       >
-        <div class="text-center w-full space-y-12">
+        <div class="text-center w-full space-y-6">
           <p class="text-xl font-semibold text-[#286047]">點擊下方站點來選擇您想探索的地點</p>
 
           <div class="w-full max-w-5xl mx-auto">
@@ -143,7 +153,7 @@
           class="bg-white p-4 rounded-xl shadow-lg border border-gray-200 w-full md:w-1/2 text-sm space-y-2"
         >
           <p class="font-bold text-[#286047]">
-            目前選播捷運站：<span class="text-red-500 font-extrabold">{{
+            目前選擇捷運站：<span class="text-red-500 font-extrabold">{{
               selectedStationName
             }}</span>
           </p>
@@ -194,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h, type Component } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoleStore } from '@/stores/modules/useRole'
 
@@ -203,14 +213,13 @@ import MeetroIntroCard from '@/components/cards/MeetroIntroCard.vue'
 import PopupBoxLayout from '@/components/web/PopupBox/PopupBoxLayout.vue'
 import ExploreStationPopup from '@/components/web/PopupBox/ExploreStationPopup.vue'
 import LoginHintPopup from '@/components/web/PopupBox/LoginHintPopup.vue'
-import SvgItem from '@/components/icons/SvgItem.vue'
+// SvgItem 已經不需要在這裡 import 了 (除非其他地方用到)，因為卡片內部會處理
+// 但如果有其他地方用到 SvgItem (例如這裡沒有)，可以移除
 
 const router = useRouter()
 const roleStore = useRoleStore()
 
-// ----------------------------------------------------------------
-// 1. 定義靜態資料 (必須移到 computed 和 ref 之前)
-// ----------------------------------------------------------------
+// --- 地圖資料與邏輯 ---
 
 const stationMap: Record<string, string> = {
   songshan: '松山',
@@ -257,6 +266,20 @@ const mainLineKeys: string[] = [
   'xindian',
 ]
 
+const branchLineKey = 'xiaobitan'
+const branchStartKey = 'qizhang'
+
+const line1Keys = computed(() => mainLineKeys.slice(0, 10))
+const line2Keys = computed(() => mainLineKeys.slice(10))
+
+const selectedStationKey = ref<string>('songshan')
+const showExplorePopup = ref<boolean>(false)
+const showLoginHint = ref<boolean>(false)
+const weatherData = ref<string>('(抓取天氣API資料)')
+const customAlert = ref<string | null>(null)
+
+const selectedStationName = computed(() => stationMap[selectedStationKey.value] || '')
+
 const stationAttractions: Record<string, string> = {
   songshan: '饒河街夜市、松山慈祐宮、五分埔',
   nanjingsanmin: '小巨蛋、東方文華酒店',
@@ -280,160 +303,37 @@ const stationAttractions: Record<string, string> = {
   xindian: '碧潭風景區、新店老街、和美山步道',
 }
 
-// 圖示定義 (Moved up)
-const MapPinIcon = h(
-  'svg',
-  {
-    xmlns: 'http://www.w3.org/2000/svg',
-    width: '24',
-    height: '24',
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    'stroke-width': '2',
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'round',
-  },
-  [
-    h('path', { d: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z' }),
-    h('circle', { cx: '12', cy: '10', r: '3' }),
-  ],
-)
-const TargetIcon = h(
-  'svg',
-  {
-    xmlns: 'http://www.w3.org/2000/svg',
-    width: '24',
-    height: '24',
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    'stroke-width': '2',
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'round',
-  },
-  [
-    h('circle', { cx: '12', cy: '12', r: '10' }),
-    h('circle', { cx: '12', cy: '12', r: '6' }),
-    h('circle', { cx: '12', cy: '12', r: '2' }),
-  ],
-)
-const SendIcon = h(
-  'svg',
-  {
-    xmlns: 'http://www.w3.org/2000/svg',
-    width: '24',
-    height: '24',
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    'stroke-width': '2',
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'round',
-  },
-  [h('path', { d: 'm22 2-7 20-4-9-9-4Z' }), h('path', { d: 'M22 2 11 13' })],
-)
-const CheckCircleIcon = h(
-  'svg',
-  {
-    xmlns: 'http://www.w3.org/2000/svg',
-    width: '24',
-    height: '24',
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    'stroke-width': '2',
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'round',
-  },
-  [
-    h('path', { d: 'M22 11.08V12a10 10 0 1 1-5.93-9.14' }),
-    h('polyline', { points: '22 4 12 14.01 9 11.01' }),
-  ],
-)
-const PartyPopperIcon = h(
-  'svg',
-  {
-    xmlns: 'http://www.w3.org/2000/svg',
-    width: '24',
-    height: '24',
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    'stroke-width': '2',
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'round',
-  },
-  [
-    h('path', {
-      d: 'M5.8 11.3 2 12l.7-3.8L2 4.4 5.8 5l.7-3.8 3.8.7.7-3.8 3.8.7.7-3.8 3.8.7 3.8-3.8',
-    }),
-    h('path', { d: 'M4 22h16' }),
-    h('path', { d: 'M10 22v-4a2 2 0 1 1 4 0v4' }),
-    h('path', { d: 'm14 14.5-2.5 2.5' }),
-    h('path', { d: 'm10 14.5 2.5 2.5' }),
-    h('path', { d: 'm9 13.5 1 1' }),
-    h('path', { d: 'm15 13.5-1 1' }),
-    h('path', { d: 'm12 11.5 0 1' }),
-  ],
-)
-
-interface IntroStep {
-  title: string
-  description: string
-  icon: Component
-}
-
+// --- 步驟指南資料 (寫死、使用 String Icon Name) ---
+// 這裡直接傳遞 SvgItem 的 name 字串，乾淨俐落
 const introSteps = [
   {
     title: 'STEP 1: 選擇捷運站',
     content: '選擇松山新店線(綠線)想探索的捷運站。',
-    icon: MapPinIcon, // 如果你有定義 icon，沒有就拿掉這行
+    icon: 'location-dot', // 对应 map-pin
   },
   {
     title: 'STEP 2: 確認目的',
     content: '1. 想找人一起參與 (發送方)\n2. 尋找有趣活動 (選擇方)',
-    icon: TargetIcon,
+    icon: 'target',
   },
   {
     title: 'STEP 3: 發送邀約 / 選擇邀約',
     content: '此部分將根據 邀約發送方 or 邀約選擇方 而有不同操作方式。',
-    icon: SendIcon,
+    icon: 'send',
   },
   {
     title: 'STEP 4: 填寫滿意度',
     content: '完成邀約後，系統會引導您填寫本次體驗的滿意度，以便優化配對服務。',
-    icon: CheckCircleIcon,
+    icon: 'check',
   },
   {
     title: 'STEP 5: 成功配對',
     content: '當雙方確認並完成所有步驟後，恭喜您！邀約成功，準備出發吧！',
-    icon: PartyPopperIcon,
+    icon: 'party',
   },
 ]
 
-const branchLineKey = 'xiaobitan'
-const branchStartKey = 'qizhang'
-
-// ----------------------------------------------------------------
-// 2. 定義狀態 Ref 與 Computed (這些會用到上方的靜態資料)
-// ----------------------------------------------------------------
-
-const line1Keys = computed(() => mainLineKeys.slice(0, 10))
-const line2Keys = computed(() => mainLineKeys.slice(10))
-
-const selectedStationKey = ref<string>('songshan')
-const showExplorePopup = ref<boolean>(false)
-const showLoginHint = ref<boolean>(false)
-const weatherData = ref<string>('(抓取天氣API資料)')
-const customAlert = ref<string | null>(null)
-
-// 這個 Computed 需要用到 stationMap，所以必須放在 stationMap 定義之後
-const selectedStationName = computed(() => stationMap[selectedStationKey.value] || '')
-
-// ----------------------------------------------------------------
-// 3. 函數定義
-// ----------------------------------------------------------------
+// --- Functions ---
 
 const showAlert = (message: string) => {
   customAlert.value = message
@@ -455,10 +355,7 @@ const getAttractions = (key: string): string => {
   return stationAttractions[key] || '無已知景點 (抓取資料中...)'
 }
 
-// --- 彈窗邏輯 ---
-
 const openPopup = () => {
-  // 判斷權限
   if (roleStore.isGuest) {
     showLoginHint.value = true
   } else {
@@ -469,28 +366,32 @@ const openPopup = () => {
 const closePopup = () => {
   showExplorePopup.value = false
 }
-
 const closeLoginHint = () => {
   showLoginHint.value = false
 }
 
 const handleGoToLogin = () => {
   closeLoginHint()
-  router.push({ name: 'BCMSLogin' })
+  router.push({ name: 'WebLogin' })
 }
 
 const handleExploreConfirmed = (key: string, role: 'sender' | 'receiver') => {
   closePopup()
   const routeName = role === 'sender' ? 'SenderView' : 'ReceiverView'
-
   try {
-    router.push({
-      name: routeName,
-      params: { stationKey: key },
-    })
+    router.push({ name: routeName, params: { stationKey: key } })
   } catch (error: any) {
     console.error(error)
     showAlert('導航失敗，請檢查路由配置')
+  }
+}
+
+const goToEmaWall = () => {
+  if (selectedStationKey.value) {
+    router.push({
+      name: 'EmaWall',
+      params: { stationKey: selectedStationKey.value },
+    })
   }
 }
 </script>
@@ -506,8 +407,6 @@ const handleExploreConfirmed = (key: string, role: 'sender' | 'receiver') => {
 .intro-cards-scroll-area::-webkit-scrollbar-track {
   background: #f3f4f6;
 }
-
-/* Alert 動畫 */
 @keyframes fadeInOut {
   0% {
     opacity: 0;
@@ -529,7 +428,6 @@ const handleExploreConfirmed = (key: string, role: 'sender' | 'receiver') => {
 .animate-fadeInOut {
   animation: fadeInOut 3s ease-in-out forwards;
 }
-
 .whitespace-nowrap {
   white-space: nowrap;
 }

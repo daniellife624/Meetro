@@ -144,10 +144,15 @@ const goProfile = () => {
 }
 
 const handleLogout = () => {
-  isDrawerOpen.value = false
   if (confirm('確定要登出嗎？')) {
+    const wasAdmin = roleStore.isAdmin
     roleStore.logout()
-    router.push('/')
+    if (wasAdmin) {
+      router.push({ name: 'BCMSLogin' })
+    } else {
+      router.push({ name: 'home' })
+    }
+    isDrawerOpen.value = false
   }
 }
 </script>

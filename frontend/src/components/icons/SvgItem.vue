@@ -120,6 +120,25 @@
         d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
       ></path>
     </template>
+
+    <template v-if="name === 'target'">
+      <circle cx="12" cy="12" r="10"></circle>
+      <circle cx="12" cy="12" r="6"></circle>
+      <circle cx="12" cy="12" r="2"></circle>
+    </template>
+
+    <template v-if="name === 'party'">
+      <path
+        d="M5.8 11.3 2 12l.7-3.8L2 4.4 5.8 5l.7-3.8 3.8.7.7-3.8 3.8.7.7-3.8 3.8.7 3.8-3.8"
+      ></path>
+      <path d="M4 22h16"></path>
+      <path d="M10 22v-4a2 2 0 1 1 4 0v4"></path>
+      <path d="m14 14.5-2.5 2.5"></path>
+      <path d="m10 14.5 2.5 2.5"></path>
+      <path d="m9 13.5 1 1"></path>
+      <path d="m15 13.5-1 1"></path>
+      <path d="m12 11.5 0 1"></path>
+    </template>
   </svg>
 </template>
 
@@ -148,6 +167,8 @@ type IconName =
   | 'calendar'
   | 'gender'
   | 'smile'
+  | 'target'
+  | 'party'
 
 const props = defineProps<{
   name: IconName
