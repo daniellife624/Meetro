@@ -1,8 +1,19 @@
 <template>
   <div class="min-h-screen bg-[#FFF0F0] px-4 font-sans flex flex-col">
     <div class="container mx-auto flex-grow flex items-start justify-center pt-20">
-      <ProfileCard :user="userData" @change-password="handleChangePassword" />
+      <ProfileCard :user="userData" @change-password="showPasswordPopup = true" />
     </div>
+    <PopupBoxLayout
+      v-if="showPasswordPopup"
+      title="修改密碼"
+      :cancel-callback="() => (showPasswordPopup = false)"
+      :use-form="false"
+    >
+      <ChangePasswordPopup
+        @cancel="showPasswordPopup = false"
+        @submit="handleChangePasswordSubmit"
+      />
+    </PopupBoxLayout>
   </div>
 </template>
 
@@ -10,6 +21,8 @@
 // Script 保持不變
 import { ref } from 'vue'
 import ProfileCard, { type UserProfile } from '@/components/cards/ProfileCard.vue'
+import PopupBoxLayout from '@/components/web/PopupBox/PopupBoxLayout.vue'
+import ChangePasswordPopup from '@/components/web/PopupBox/ChangePasswordPopup.vue'
 
 const userData = ref<UserProfile>({
   name: '王小明',
@@ -20,8 +33,13 @@ const userData = ref<UserProfile>({
   successRate: 85,
 })
 
-const handleChangePassword = () => {
-  alert('即將開啟修改密碼彈窗')
+const showPasswordPopup = ref(false)
+
+const handleChangePasswordSubmit = (data: any) => {
+  console.log('修改密碼資料:', data)
+  // 這裡呼叫 API
+  alert('密碼修改成功！')
+  showPasswordPopup.value = false
 }
 </script>
 

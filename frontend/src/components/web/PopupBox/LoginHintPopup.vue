@@ -4,7 +4,7 @@
       <div
         class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center animate-bounce"
       >
-        <SvgItem name="login" size="10" class="text-[#286047]" />
+        <SvgItem name="login" size="10" class="text-[#008659]" />
       </div>
     </div>
 
@@ -18,7 +18,7 @@
     <div class="flex flex-col gap-3 pt-2">
       <button
         @click="$emit('go-login')"
-        class="w-full py-3 bg-[#286047] text-white font-bold rounded-xl shadow-md hover:bg-green-800 transition duration-300 flex justify-center items-center gap-2"
+        class="w-full py-3 bg-[#008659] text-white font-bold rounded-xl shadow-md hover:bg-green-800 transition duration-300 flex justify-center items-center gap-2"
       >
         <span>前往登入 / 註冊</span>
         <SvgItem name="login" size="5" />

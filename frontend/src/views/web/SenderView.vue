@@ -3,7 +3,7 @@
     <div
       class="w-full md:w-1/3 bg-white border-r border-gray-200 p-6 flex flex-col overflow-y-auto max-h-full md:max-h-screen"
     >
-      <h1 class="text-2xl font-extrabold mb-4 text-[#286047] border-b-2 border-[#E8F5E9] pb-3">
+      <h1 class="text-2xl font-extrabold mb-4 text-[#008659] border-b-2 border-[#E8F5E9] pb-3">
         Meetro 發送方步驟指南
       </h1>
       <div class="intro-cards-scroll-area flex-grow overflow-y-auto pr-3">
@@ -21,7 +21,7 @@
     </div>
 
     <div class="flex flex-col w-full md:w-2/3 p-6 relative overflow-y-auto bg-white h-full">
-      <h2 class="text-3xl font-extrabold text-[#286047] mb-6 border-b pb-3">
+      <h2 class="text-3xl font-extrabold text-[#008659] mb-6 border-b pb-3">
         發送新邀約：{{ stationName }}站
       </h2>
 
@@ -35,7 +35,7 @@
             v-model="invitation.title"
             rows="3"
             placeholder="請簡述您的邀約內容..."
-            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#286047] resize-none"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008659] resize-none"
             maxlength="50"
           ></textarea>
           <p class="text-right text-xs text-gray-500 mt-1">{{ invitation.title.length }} / 50 字</p>
@@ -49,7 +49,7 @@
             id="invite-time"
             type="datetime-local"
             v-model="invitation.time"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#286047]"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008659]"
           />
         </div>
 
@@ -60,9 +60,9 @@
             type="text"
             v-model="invitation.locationName"
             placeholder="請輸入或在地圖上點擊來選擇地點"
-            class="w-full p-3 mb-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#286047]"
+            class="w-full p-3 mb-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008659]"
           />
-          <div id="map" class="w-full h-96 rounded-lg shadow-md border-2 border-[#286047]"></div>
+          <div id="map" class="w-full h-96 rounded-lg shadow-md border-2 border-[#008659]"></div>
           <p class="text-sm text-gray-600 mt-2">
             選定座標：<span class="font-mono text-xs text-red-600">{{ invitation.latLng }}</span>
           </p>
@@ -88,7 +88,7 @@
         <div
           class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
         >
-          <svg class="w-8 h-8 text-[#286047]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-8 h-8 text-[#008659]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -104,7 +104,7 @@
         <div class="space-y-3">
           <button
             @click="goHome"
-            class="w-full py-3 bg-[#286047] text-white font-bold rounded-xl hover:bg-green-800"
+            class="w-full py-3 bg-[#008659] text-white font-bold rounded-xl hover:bg-green-800"
           >
             回到首頁
           </button>
@@ -127,12 +127,27 @@ import MeetroIntroCard from '@/components/cards/MeetroIntroCard.vue'
 
 const router = useRouter()
 
-// ... (保留 stationMap, google, map, marker, props, stationName, invitation, showSuccessModal 等變數) ...
 const stationMap: Record<string, string> = {
-  xindian: '新店',
-  gongguan: '公館',
-  nanjingfuxing: '南京復興',
   songshan: '松山',
+  nanjingsanmin: '南京三民',
+  taipeiarena: '台北小巨蛋',
+  nanjingfuxing: '南京復興',
+  songjiangnanjing: '松江南京',
+  zhongshan: '中山',
+  beimen: '北門',
+  ximen: '西門',
+  xiaonanmen: '小南門',
+  chiangkaishekmemorialhall: '中正紀念堂',
+  guting: '古亭',
+  taipowerbuilding: '台電大樓',
+  gongguan: '公館',
+  wanlong: '萬隆',
+  jingmei: '景美',
+  dapinglin: '大坪林',
+  qizhang: '七張',
+  xiaobitan: '小碧潭',
+  xindiandistrictoffice: '新店區公所',
+  xindian: '新店',
 }
 declare const google: any
 let map: any
@@ -144,7 +159,7 @@ const props = defineProps<Props>()
 const stationName = computed(() => {
   const key = props.stationKey?.toLowerCase().trim() ?? ''
   if (!key) return '松山新店線任一站'
-  return stationMap[key] || '未知站'
+  return stationMap[key] || '未知'
 })
 const invitation = ref({
   title: '',

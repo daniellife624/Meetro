@@ -23,7 +23,7 @@
     <div class="flex flex-col w-full md:w-2/3 pl-6 py-8 pr-0 relative overflow-y-auto">
       <div class="flex items-center gap-4 mb-8 pr-6 border-b border-gray-200 pb-4">
         <div
-          class="flex flex-col items-center justify-center bg-[#286047] text-white w-20 h-20 rounded-2xl shadow-lg flex-shrink-0"
+          class="flex flex-col items-center justify-center bg-[#008659] text-white w-20 h-20 rounded-2xl shadow-lg flex-shrink-0"
         >
           <span class="text-xs opacity-80 font-medium tracking-widest">MRT</span>
           <span class="text-2xl font-bold tracking-widest">{{ stationName.slice(0, 2) }}</span>
@@ -35,7 +35,7 @@
           </h1>
           <p class="text-gray-500 text-sm mt-1 font-medium">
             目前正在瀏覽
-            <span class="text-[#286047] font-bold text-base mx-1">{{ stationName }}</span>
+            <span class="text-[#008659] font-bold text-base mx-1">{{ stationName }}</span>
             周邊的活動
           </p>
         </div>
@@ -46,7 +46,7 @@
         class="text-center py-20 text-gray-500 flex flex-col items-center gap-3"
       >
         <div
-          class="w-8 h-8 border-4 border-[#286047] border-t-transparent rounded-full animate-spin"
+          class="w-8 h-8 border-4 border-[#008659] border-t-transparent rounded-full animate-spin"
         ></div>
         <p>正在搜尋 {{ stationName }} 站的邀約...</p>
       </div>

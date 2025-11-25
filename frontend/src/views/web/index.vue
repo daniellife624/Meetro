@@ -3,7 +3,7 @@
     <div
       class="w-full md:w-1/3 bg-white border-r border-gray-200 p-6 flex flex-col overflow-y-auto max-h-full md:max-h-screen"
     >
-      <h1 class="text-2xl font-extrabold mb-4 text-[#286047] border-b-2 border-[#E8F5E9] pb-3">
+      <h1 class="text-2xl font-extrabold mb-4 text-[#008659] border-b-2 border-[#E8F5E9] pb-3">
         Meetro 步驟指南
       </h1>
       <div class="intro-cards-scroll-area flex-grow overflow-y-auto pr-3">
@@ -22,12 +22,12 @@
 
     <div class="flex flex-col w-full md:w-2/3 p-6 relative overflow-y-auto">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <h1 class="text-3xl font-extrabold text-[#286047] mb-3 sm:mb-0">捷運 松山新店線 地圖</h1>
+        <h1 class="text-3xl font-extrabold text-[#008659] mb-3 sm:mb-0">捷運 松山新店線 地圖</h1>
 
         <div class="flex gap-3">
           <button
             @click="goToEmaWall"
-            class="px-5 py-2 bg-white text-[#286047] border-2 border-[#286047] font-bold rounded-full shadow hover:bg-green-50 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class="px-5 py-2 bg-white text-[#008659] border-2 border-[#008659] font-bold rounded-full shadow hover:bg-green-50 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             :disabled="!selectedStationKey"
           >
             <span> {{ selectedStationName }} 繪馬牆</span>
@@ -35,7 +35,7 @@
 
           <button
             @click="openPopup"
-            class="px-6 py-2 bg-[#286047] text-white font-bold rounded-full shadow-lg hover:bg-green-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            class="px-6 py-2 bg-[#008659] text-white font-bold rounded-full shadow-lg hover:bg-green-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
             :disabled="!selectedStationKey"
           >
             開始探索 {{ selectedStationName }}站
@@ -47,7 +47,7 @@
         class="flex-grow bg-[#E8F5E9] border border-[#C8E6C9] rounded-xl shadow-inner mb-6 flex items-start justify-center relative min-h-[300px] p-4 pt-10"
       >
         <div class="text-center w-full space-y-6">
-          <p class="text-xl font-semibold text-[#286047]">點擊下方站點來選擇您想探索的地點</p>
+          <p class="text-xl font-semibold text-[#008659]">點擊下方站點來選擇您想探索的地點</p>
 
           <div class="w-full max-w-5xl mx-auto">
             <div class="relative w-full">
@@ -74,7 +74,7 @@
                   </span>
                   <p
                     class="text-xs text-gray-700 font-medium whitespace-nowrap pt-1"
-                    :class="{ 'font-bold text-[#286047]': key === selectedStationKey }"
+                    :class="{ 'font-bold text-[#008659]': key === selectedStationKey }"
                   >
                     {{ stationMap[key] }}
                   </p>
@@ -108,7 +108,7 @@
                   </span>
                   <p
                     class="text-xs text-gray-700 font-medium whitespace-nowrap pt-1"
-                    :class="{ 'font-bold text-[#286047]': key === selectedStationKey }"
+                    :class="{ 'font-bold text-[#008659]': key === selectedStationKey }"
                   >
                     {{ stationMap[key] }}
                   </p>
@@ -134,7 +134,7 @@
                       <p
                         class="text-xs text-gray-700 font-medium whitespace-nowrap pt-1"
                         :class="{
-                          'font-bold text-[#286047]': branchLineKey === selectedStationKey,
+                          'font-bold text-[#008659]': branchLineKey === selectedStationKey,
                         }"
                       >
                         {{ stationMap[branchLineKey] }}
@@ -152,7 +152,7 @@
         <div
           class="bg-white p-4 rounded-xl shadow-lg border border-gray-200 w-full md:w-1/2 text-sm space-y-2"
         >
-          <p class="font-bold text-[#286047]">
+          <p class="font-bold text-[#008659]">
             目前選擇捷運站：<span class="text-red-500 font-extrabold">{{
               selectedStationName
             }}</span>
@@ -196,7 +196,7 @@
 
     <div
       v-if="customAlert"
-      class="fixed top-5 right-5 z-[100] bg-white text-[#286047] p-4 rounded-lg shadow-xl border-t-4 border-[#286047] transition-opacity duration-500 animate-fadeInOut"
+      class="fixed top-5 right-5 z-[100] bg-white text-[#008659] p-4 rounded-lg shadow-xl border-t-4 border-[#008659] transition-opacity duration-500 animate-fadeInOut"
     >
       {{ customAlert }}
     </div>

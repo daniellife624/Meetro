@@ -7,7 +7,7 @@
           class="flex-1 py-4 text-center cursor-pointer transition-all duration-300 relative font-bold tracking-wider text-lg"
           :class="
             activeTab === 0
-              ? 'bg-[#E8F5E9] text-[#286047]'
+              ? 'bg-[#E8F5E9] text-[#008659]'
               : 'bg-white text-gray-400 hover:bg-gray-50'
           "
         >
@@ -23,7 +23,7 @@
           class="flex-1 py-4 text-center cursor-pointer transition-all duration-300 relative font-bold tracking-wider text-lg"
           :class="
             activeTab === 1
-              ? 'bg-[#E8F5E9] text-[#286047]'
+              ? 'bg-[#E8F5E9] text-[#008659]'
               : 'bg-white text-gray-400 hover:bg-gray-50'
           "
         >
@@ -43,7 +43,7 @@
           class="text-center text-gray-500 py-16 bg-white/50 rounded-xl"
         >
           目前沒有初步接受的邀約，快去
-          <router-link to="/" class="text-[#286047] font-bold underline hover:text-[#1b5e20]"
+          <router-link to="/" class="text-[#008659] font-bold underline hover:text-[#1b5e20]"
             >探索</router-link
           >
           吧！

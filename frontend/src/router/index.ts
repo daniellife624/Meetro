@@ -18,8 +18,8 @@ const SenderView = () => import('@/views/web/SenderView.vue')
 const ReceiverView = () => import('@/views/web/ReceiverView.vue')
 const HistoryPage = () => import('@/views/web/history.vue')
 const ProfilePage = () => import('@/views/web/profile.vue')
-const NotFound = () => import('@/views/404.vue')
 const EmaWallView = () => import('@/views/web/EmaWallView.vue')
+const NotFound = () => import('@/views/404.vue')
 
 export const webRouteName = 'web'
 
@@ -69,11 +69,7 @@ export const publicWebRoutes: RouteRecordRaw[] = [
     name: 'EmaWall',
     component: EmaWallView,
     props: true,
-    meta: {
-      title: '站點繪馬牆',
-      isPublic: true,
-      requiresAuth: false,
-    },
+    meta: { title: '站點繪馬牆', isPublic: true, requiresAuth: false },
   },
 ]
 
@@ -95,7 +91,7 @@ export const privateWebRoutes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // 1. 後台登入 (獨立路由，不使用 WebLayout，擁有自己的 Header)
+    // 1. 後台登入 (獨立路由)
     {
       path: '/bcms/login',
       name: 'BCMSLogin',
@@ -103,7 +99,7 @@ const router = createRouter({
       meta: { title: '後臺登入', isPublic: true, requiresAuth: false },
     },
 
-    // 2. 後台管理區 (使用 WebLayout，共用 MeetroHeader 顯示 "後臺管理端")
+    // 2. 後台管理區
     {
       path: '/bcms',
       component: WebLayout,
@@ -155,35 +151,28 @@ router.beforeEach((to, from, next) => {
   const requiresAuth = to.meta.requiresAuth
   const isLoggedIn = !roleStore.isGuest
 
-  // 判斷是否為登入相關頁面
   const isAuthPage = ['WebLogin', 'WebRegister', 'BCMSLogin'].includes(to.name as string)
 
-  // 【情境 1】需要登入但未登入
   if (requiresAuth && !isLoggedIn) {
+    // 1. 需登入但未登入
     console.warn('[Router] Access denied.', to.fullPath)
-
-    // 如果去後台 -> 導向後台登入；去前台 -> 導向前台登入
     if (to.path.startsWith('/bcms')) {
       next({ name: 'BCMSLogin', query: { redirect: to.fullPath } })
     } else {
       next({ name: 'WebLogin', query: { redirect: to.fullPath } })
     }
     loadingStore.setLoading(false)
-  }
-  // 【情境 2】已登入卻想去登入頁 (防呆)
-  else if (isAuthPage && isLoggedIn) {
+  } else if (isAuthPage && isLoggedIn) {
+    // 2. 已登入卻想去登入頁 (防呆)
     console.warn('[Router] Already logged in. Redirecting.')
-
-    // 管理員 -> 去儀表板；一般會員 -> 去首頁
     if (roleStore.isAdmin) {
       next({ name: 'BCMSDashboard' })
     } else {
       next({ name: 'home' })
     }
     loadingStore.setLoading(false)
-  }
-  // 【情境 3】一般通行
-  else {
+  } else {
+    // 3. 通行
     next()
   }
 })
@@ -193,9 +182,8 @@ router.afterEach((to) => {
   setTimeout(() => {
     loadingStore.setLoading(false)
   }, 300)
-
-  const siteTitle = to.path.startsWith('/bcms') ? 'Meetro 後台管理' : 'Meetro - 相遇地圖'
-  document.title = (to.meta.title ? to.meta.title + ' | ' : '') + siteTitle
+  const defaultTitle = to.path.startsWith('/bcms') ? 'Meetro 後台管理' : 'Meetro - 相遇地圖'
+  document.title = (to.meta.title ? to.meta.title + ' | ' : '') + defaultTitle
 })
 
 export default router

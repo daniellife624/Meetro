@@ -7,14 +7,14 @@
             <span class="text-xl font-bold text-gray-600">←</span>
           </button>
           <div>
-            <h1 class="text-xl font-bold text-[#286047]">{{ stationName }} 繪馬牆</h1>
+            <h1 class="text-xl font-bold text-[#008659]">{{ stationName }} 繪馬牆</h1>
             <p class="text-xs text-gray-500">看看大家在這裡留下了什麼回憶...</p>
           </div>
         </div>
 
         <button
           @click="openCreateModal"
-          class="hidden md:flex items-center gap-2 bg-[#286047] text-white px-4 py-2 rounded-full font-bold hover:bg-[#1e4a36] transition shadow-md"
+          class="hidden md:flex items-center gap-2 bg-[#008659] text-white px-4 py-2 rounded-full font-bold hover:bg-[#1e4a36] transition shadow-md"
         >
           <span class="text-xl">+</span> 寫繪馬
         </button>
@@ -32,7 +32,7 @@
 
     <button
       @click="openCreateModal"
-      class="md:hidden fixed bottom-8 right-6 w-14 h-14 bg-[#286047] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-20"
+      class="md:hidden fixed bottom-8 right-6 w-14 h-14 bg-[#008659] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-20"
     >
       <span class="text-3xl font-light pb-1">+</span>
     </button>

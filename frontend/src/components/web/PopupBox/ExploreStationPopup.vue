@@ -11,29 +11,29 @@
         :key="option.key"
         @click="selectedRole = option.key"
         :class="{
-          'border-[#286047] bg-[#f1f8e9] shadow-inner': selectedRole === option.key,
+          'border-[#008659] bg-[#f1f8e9] shadow-inner': selectedRole === option.key,
           'border-gray-200 hover:border-gray-400 hover:bg-gray-50': selectedRole !== option.key,
         }"
         class="flex items-start p-4 border-2 rounded-xl cursor-pointer transition duration-200"
       >
         <div class="mt-1 mr-3">
-          <Send v-if="option.key === 'sender'" size="24" class="text-[#286047]" />
-          <Users v-else size="24" class="text-blue-500" />
+          <Send v-if="option.key === 'sender'" size="24" class="text-[#008659]" />
+          <Users v-else size="24" class="text-[#e3002c]" />
         </div>
         <div>
           <p class="font-bold text-gray-800">{{ option.title }}</p>
           <p class="text-xs text-gray-500">{{ option.description }}</p>
         </div>
-        <div v-if="selectedRole === option.key" class="ml-auto p-1 rounded-full bg-[#286047]">
+        <div v-if="selectedRole === option.key" class="ml-auto p-1 rounded-full bg-[#008659]">
           <Check size="16" class="text-white" />
         </div>
       </div>
     </div>
 
     <p class="text-center pt-2">
-      <span class="font-bold text-[#286047]">您選定的角色是：</span>
+      <span class="font-bold text-black">您選定的角色是：</span>
       <span
-        :class="selectedRole === 'sender' ? 'text-[#286047]' : 'text-blue-600'"
+        :class="selectedRole === 'sender' ? 'text-[#008659]' : 'text-[#e3002c]'"
         class="font-extrabold"
       >
         {{ selectedRole === 'sender' ? '發送方' : '選擇方' }}
@@ -42,7 +42,7 @@
 
     <button
       @click="handleConfirm"
-      class="w-full mt-4 py-3 bg-[#286047] text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition duration-300"
+      class="w-full mt-4 py-3 bg-[#008659] text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition duration-300"
     >
       挑選景點（作為 {{ selectedRole === 'sender' ? '發送方' : '選擇方' }}）
     </button>

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center justify-between w-full p-6 bg-white border border-[#286047] border-r-0 rounded-l-[50px] rounded-r-none shadow-sm hover:shadow-md transition-all duration-300 group"
+    class="flex items-center justify-between w-full p-6 bg-white border border-[#008659] border-r-0 rounded-l-[50px] rounded-r-none shadow-sm hover:shadow-md transition-all duration-300 group"
   >
     <div class="flex flex-col space-y-2 pl-6 flex-grow">
       <div class="text-lg font-bold text-gray-800 tracking-wide">

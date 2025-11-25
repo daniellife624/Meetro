@@ -7,7 +7,7 @@
     >
       <!-- 標題與關閉按鈕 -->
       <div class="flex justify-between items-center p-5 border-b border-gray-200">
-        <h2 class="text-xl font-extrabold text-[#286047]">{{ title }}</h2>
+        <h2 class="text-xl font-extrabold text-[#008659]">{{ title }}</h2>
         <button
           @click="cancelCallback"
           class="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
