@@ -25,10 +25,6 @@
   </div>
 </template>
 
-<script setup lang="ts">
-// 確保這是一個乾淨的 setup 區塊，沒有不必要的複雜邏輯或導入錯誤。
-</script>
+<script setup lang="ts"></script>
 
-<style scoped>
-/* 頁面專屬樣式，確保沒有影響編譯的錯誤語法 */
-</style>
+<style scoped></style>

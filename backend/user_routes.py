@@ -1,17 +1,18 @@
 # backend/user_routes.py
-# 註冊 / 登入 / 取得自己資料 / admin 範例
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
-from backend import schemas
-from backend.database import SessionLocal
-from backend.models import User
-from backend.security import hash_password, verify_password
-from backend.auth import create_access_token, get_current_user, get_admin_user
+# from sqlalchemy.orm import Session
+
+import schemas
+from database import SessionLocal
+from models import User
+from security import hash_password, verify_password
+from auth import create_access_token, get_current_user, get_admin_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# 也可以改用 auth.get_db，但這裡再寫一份也 OK
+
+# DB Dependency
 def get_db():
     db = SessionLocal()
     try:
@@ -22,17 +23,21 @@ def get_db():
 
 @router.post("/register", response_model=schemas.UserOut)
 def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
-    # ✅ 驗證 Email 唯一性
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="此 Email 已被註冊")
 
+    # 建立使用者
+    # 注意：資料庫欄位是 'name'，前端傳來的 schema 可能是 'username'
+    # 我們暫時將 username 的值存入 name，或者你需要去 update schemas.py
     user = User(
         email=user_in.email,
-        username=user_in.username,
+        name=user_in.username,  # 將 username 存入 name 欄位
         hashed_password=hash_password(user_in.password),
-        role="user"
+        role="user",
+        # gender 與 birthday 若 schema 有傳入可在此加入，若無則為 null
     )
+
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -42,23 +47,26 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
 @router.post("/login", response_model=schemas.Token)
 def login(user_in: schemas.UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_in.email).first()
+
+    # 驗證帳號與密碼
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="帳號或密碼錯誤")
 
-    # JWT 裡放 user_id / email / role
+    # 簽發 JWT
+    # 這裡把 role 放進去，前端解碼後可以用來判斷身分
     token = create_access_token(
         {"sub": str(user.id), "email": user.email, "role": user.role}
     )
     return {"access_token": token, "token_type": "bearer"}
 
 
-# ✅ 需要登入才能看的 API
+# 需要登入才能看的 API
 @router.get("/me", response_model=schemas.UserOut)
 def read_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-# ✅ 只有 admin 能用的 API 範例
+# 只有 admin 能用的 API
 @router.get("/admin/overview")
 def admin_only_view(admin: User = Depends(get_admin_user)):
     return {"message": f"歡迎管理員 {admin.email}"}

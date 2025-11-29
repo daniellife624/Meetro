@@ -207,14 +207,13 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoleStore } from '@/stores/modules/useRole'
+import request from '@/utils/request'
 
 // Components
 import MeetroIntroCard from '@/components/cards/MeetroIntroCard.vue'
 import PopupBoxLayout from '@/components/web/PopupBox/PopupBoxLayout.vue'
 import ExploreStationPopup from '@/components/web/PopupBox/ExploreStationPopup.vue'
 import LoginHintPopup from '@/components/web/PopupBox/LoginHintPopup.vue'
-// SvgItem 已經不需要在這裡 import 了 (除非其他地方用到)，因為卡片內部會處理
-// 但如果有其他地方用到 SvgItem (例如這裡沒有)，可以移除
 
 const router = useRouter()
 const roleStore = useRoleStore()
@@ -277,6 +276,7 @@ const showExplorePopup = ref<boolean>(false)
 const showLoginHint = ref<boolean>(false)
 const weatherData = ref<string>('(抓取天氣API資料)')
 const customAlert = ref<string | null>(null)
+const currentAttractions = ref<string[]>([])
 
 const selectedStationName = computed(() => stationMap[selectedStationKey.value] || '')
 
@@ -342,17 +342,47 @@ const showAlert = (message: string) => {
   }, 3000)
 }
 
-const selectStation = (key: string) => {
+const selectStation = async (key: string) => {
   selectedStationKey.value = key
-  const stationName = stationMap[key] || '未知'
-  weatherData.value = `正在為 ${stationName} 站抓取天氣...`
-  setTimeout(() => {
-    weatherData.value = `目前 ${stationName} 站天氣：晴朗，25°C (模擬資料)`
-  }, 500)
+
+  weatherData.value = '連線後端中...'
+  currentAttractions.value = [] // 清空舊景點
+
+  try {
+    // 呼叫後端 API
+    const res: any = await request.get(`/api/stations/${key}`)
+
+    console.log('後端回傳:', res)
+
+    // 更新資料
+    if (res.weather) {
+      weatherData.value = res.weather
+    } else {
+      weatherData.value = '暫無天氣資料'
+    }
+
+    if (res.attractions && Array.isArray(res.attractions)) {
+      currentAttractions.value = res.attractions
+    }
+  } catch (error) {
+    console.error(error)
+    weatherData.value = '連線失敗 (請確認後端是否啟動)'
+  }
 }
 
 const getAttractions = (key: string): string => {
-  return stationAttractions[key] || '無已知景點 (抓取資料中...)'
+  // 如果有 API 回傳的資料，優先顯示
+  if (currentAttractions.value.length > 0) {
+    return currentAttractions.value.join('、')
+  }
+
+  // 如果正在載入中 (weatherData 顯示連線中)，顯示載入提示
+  if (weatherData.value === '連線後端中...') {
+    return '資料讀取中...'
+  }
+
+  // 否則顯示前端寫死的靜態資料 (作為備案)
+  return stationAttractions[key] || '無已知景點'
 }
 
 const openPopup = () => {

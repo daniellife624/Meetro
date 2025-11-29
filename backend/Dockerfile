@@ -1,14 +1,18 @@
-# ------------------------------------
-# Backend Python Service (Python 3.11)
-# ------------------------------------
-FROM python:3.11-slim
+FROM python:3.10-slim
 
-# 環境變數
+WORKDIR /app
+
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# 設置工作目錄
-WORKDIR /app
-COPY backend/requirements.txt .
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libpq-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
 COPY . .
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

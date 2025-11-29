@@ -1,28 +1,54 @@
 version: '3.8'
 
 services:
+  # ---------------------------------------------
+  # [暫時註解] 資料庫服務
+  # ---------------------------------------------
+  # db:
+  #   image: postgres:15
+  #   container_name: meetro_db
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: meetro_user
+  #     POSTGRES_PASSWORD: meetro_password
+  #     POSTGRES_DB: meetro_db
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+  # 後端服務
   backend:
     container_name: meetro_backend
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
+    # ---------------------------------------------
+    # [暫時註解] 資料庫連線設定
+    # ---------------------------------------------
+    # environment:
+    #   DATABASE_URL: postgresql+asyncpg://meetro_user:meetro_password@db:5432/meetro_db
+    # depends_on:
+    #   - db
 
+  # 前端服務 (保持不變)
   frontend:
     container_name: meetro_frontend
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev 
-    
+      dockerfile: Dockerfile.dev
     ports:
-      - "8080:8080" 
-    
+      - "8080:8080"
     volumes:
-      - ./frontend:/app 
-      - /app/node_modules 
+      - ./frontend:/app
+      - /app/node_modules
     command: npm run dev -- --host 0.0.0.0 --port 8080
     depends_on:
       - backend
+
+# volumes:
+#   postgres_data:

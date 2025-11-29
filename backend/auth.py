@@ -4,11 +4,12 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
-from backend.database import SessionLocal
-from backend.models import User
+from database import SessionLocal
+from models import User
 
 # ==== JWT 相關設定（正式環境要用環境變數）====
 SECRET_KEY = "super-secret-key-change-me"
@@ -31,9 +32,11 @@ def get_db():
 # 建立 JWT
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + (
-        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -42,13 +45,20 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 # 之後要保護的 API 都用這個依賴
 def get_current_user(
     creds: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    # 這裡用到了 Session，所以上面必須 import
     db: Session = Depends(get_db),
 ) -> User:
     token = creds.credentials  # 從 "Authorization: Bearer xxx" 取出 xxx
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = int(payload.get("sub"))
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token 無效 (缺少 sub)",
+            )
+        user_id = int(user_id)
     except (JWTError, TypeError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
