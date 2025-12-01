@@ -20,18 +20,22 @@ app.add_middleware(
 matches = []
 match_id_counter = 1
 
+
 class Match(BaseModel):
     id: int
     sender_id: str
     receiver_id: str
     status: str  # Pending / Confirmed / Rejected
 
+
 class CreateMatchRequest(BaseModel):
     sender_id: str
     receiver_id: str
 
+
 class UpdateStatusRequest(BaseModel):
     status: str  # Confirmed / Rejected
+
 
 # ───────────────────────────────
 # Create Match (Receiver accepts invitation)
@@ -43,20 +47,26 @@ def create_match(data: CreateMatchRequest):
         id=match_id_counter,
         sender_id=data.sender_id,
         receiver_id=data.receiver_id,
-        status="Pending"
+        status="Pending",
     )
     match_id_counter += 1
     matches.append(new_match)
     return new_match
+
 
 # ───────────────────────────────
 # Query history by receiver
 # ───────────────────────────────
 @app.get("/match/{receiver_id}")
 def list_matches(receiver_id: str):
-    pending = [m for m in matches if m.receiver_id == receiver_id and m.status == "Pending"]
-    confirmed = [m for m in matches if m.receiver_id == receiver_id and m.status == "Confirmed"]
+    pending = [
+        m for m in matches if m.receiver_id == receiver_id and m.status == "Pending"
+    ]
+    confirmed = [
+        m for m in matches if m.receiver_id == receiver_id and m.status == "Confirmed"
+    ]
     return {"pending": pending, "confirmed": confirmed}
+
 
 # ───────────────────────────────
 # Update match status

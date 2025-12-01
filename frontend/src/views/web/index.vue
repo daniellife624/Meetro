@@ -357,11 +357,8 @@ const selectStation = async (key: string) => {
     // 更新資料
     if (res.weather) {
       weatherData.value = res.weather
-    } else {
-      weatherData.value = '暫無天氣資料'
     }
-
-    if (res.attractions && Array.isArray(res.attractions)) {
+    if (res.attractions) {
       currentAttractions.value = res.attractions
     }
   } catch (error) {
