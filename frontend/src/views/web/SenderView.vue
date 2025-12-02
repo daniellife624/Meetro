@@ -126,7 +126,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MeetroIntroCard from '@/components/cards/MeetroIntroCard.vue'
-// 引入 request 工具 (如果你有在 sendInvitation 用到的話)
 import request from '@/utils/request'
 
 const router = useRouter()
@@ -163,6 +162,7 @@ const invitation = ref({
 
 const showSuccessModal = ref(false)
 
+// 簡化版資料 (使用 String Icon Name)
 const introSteps = [
   {
     title: 'STEP 1: 選擇捷運站',
@@ -245,18 +245,17 @@ const initMap = () => {
     invitation.value.latLng = `${place.geometry.location.lat()},${place.geometry.location.lng()}`
   })
 
-  // 點擊地圖時呼叫後端 API 查詢地點 (整合之前的 weather_map.py 功能)
+  // 點擊地圖時呼叫後端 API 查詢地點
   map.addListener('click', async (e: any) => {
     const lat = e.latLng.lat()
     const lng = e.latLng.lng()
     marker.setPosition(e.latLng)
 
-    // 先顯示載入中
     invitation.value.latLng = `${lat}, ${lng}`
     invitation.value.locationName = '正在查詢地點...'
 
     try {
-      // 如果有 request 工具，可以在這裡呼叫 API
+      // 呼叫 /api/google/place-info (位於 weather_map.py)
       const res: any = await request.get('/api/google/place-info', { params: { lat, lng } })
       if (res.name) {
         invitation.value.locationName = res.name
@@ -264,7 +263,6 @@ const initMap = () => {
         invitation.value.locationName = '地圖點擊位置'
       }
     } catch (error) {
-      // 降級處理：使用 Google Geocoder (若後端 API 失敗)
       const geocoder = new google.maps.Geocoder()
       geocoder.geocode({ location: e.latLng }, (results: any, status: any) => {
         if (status === 'OK' && results[0]) {
@@ -298,8 +296,7 @@ const goHome = () => {
 
 onMounted(() => {
   const script = document.createElement('script')
-  script.src =
-    'https://maps.googleapis.com/maps/api/js?key=AIzaSyAtF8UQRBtvHLVok_s7h2ItjLs0gaOFrqs&libraries=places&callback=initMap'
+  script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAtF8UQRBtvHLVok_s7h2ItjLs0gaOFrqs&libraries=places&callback=initMap`
   script.async = true
   script.defer = true
   document.head.appendChild(script)

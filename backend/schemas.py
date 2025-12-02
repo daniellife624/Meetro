@@ -1,26 +1,37 @@
 # backend/schemas.py
-# Pydantic 驗證模型
 from pydantic import BaseModel, EmailStr
+from typing import Optional
+
 
 class UserBase(BaseModel):
     email: EmailStr
     username: str | None = None
 
-class UserCreate(UserBase):
+
+class UserCreate(BaseModel):
+    # 必填欄位
+    email: EmailStr
     password: str
+    username: str
+    gender: str
+    birthday: str
+
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-class UserOut(UserBase):
-    id: int
-    role: str
 
-    # ✅ Pydantic v2 的寫法
-    model_config = {
-        "from_attributes": True
-    }
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    name: str
+    role: str
+    gender: Optional[str] = None
+    birthday: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
 
 class Token(BaseModel):
     access_token: str

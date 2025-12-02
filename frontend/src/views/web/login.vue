@@ -64,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import request from '@/utils/request'
 import { reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useRoleStore } from '@/stores/modules/useRole'
@@ -83,14 +84,30 @@ const form = reactive({
 
 const handleLogin = async () => {
   loadingStore.setLoading(true, '登入中...')
+
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    roleStore.loginAsUser()
+    // 1. 登入取得 Token
+    const res: any = await request.post('/auth/login', {
+      email: form.username,
+      password: form.password,
+    })
+
+    console.log('登入成功:', res)
+    const token = res.access_token
+
+    // 2. 先把 Token 存入 Store，這樣攔截器就能讀到了
+    // (這裡先假設角色是 guest，等拿到 me 再更新)
+    roleStore.setLoginState('guest', token)
+
+    // 3. 取得使用者資料 (攔截器會自動帶上 Token)
+    const me: any = await request.get('/auth/me')
+
+    // 4. 更新正確的角色
+    roleStore.setLoginState(me.role, token)
+
     const redirectPath = route.query.redirect as string
     router.push(redirectPath || '/')
-  } catch (error) {
-    console.error(error)
-    alert('登入失敗')
+  } catch (error: any) {
   } finally {
     loadingStore.setLoading(false)
   }

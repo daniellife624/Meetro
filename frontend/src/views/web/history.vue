@@ -92,42 +92,34 @@
 </template>
 
 <script setup lang="ts">
-// Script 部分完全不需要修改，保持原樣即可
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import InviteCard, { type InviteHistoryItem } from '@/components/cards/InviteCard.vue'
 import InviteDetailPopup from '@/components/web/PopupBox/InviteDetailPopup.vue'
+import request from '@/utils/request' // 引入 request
 
 const activeTab = ref(0)
 const showDetailPopup = ref(false)
 const selectedInvite = ref<InviteHistoryItem | null>(null)
 
-const allInvites = ref<InviteHistoryItem[]>([
-  {
-    id: 101,
-    senderName: '王小明',
-    senderGender: '男性',
-    stationName: '公館站',
-    location: '公館水岸廣場',
-    status: 'pending',
-  },
-  {
-    id: 102,
-    senderName: '陳美麗',
-    senderGender: '女性',
-    stationName: '中山站',
-    location: '光點台北電影院',
-    status: 'confirmed',
-  },
-  {
-    id: 103,
-    senderName: '林大衛',
-    senderGender: '男性',
-    stationName: '新店站',
-    location: '碧潭吊橋',
-    status: 'pending',
-  },
-])
+// 資料改為空陣列，等待 API 填入
+const allInvites = ref<InviteHistoryItem[]>([])
 
+// --- API: 獲取資料 ---
+const fetchHistory = async () => {
+  try {
+    const res = await request.get('/api/matches/history')
+    // 後端回傳的格式應該已經符合 InviteHistoryItem
+    allInvites.value = res as any
+  } catch (error) {
+    console.error('獲取歷史紀錄失敗:', error)
+  }
+}
+
+onMounted(() => {
+  fetchHistory()
+})
+
+// --- Computed ---
 const pendingInvites = computed(() => allInvites.value.filter((i) => i.status === 'pending'))
 const confirmedInvites = computed(() => allInvites.value.filter((i) => i.status === 'confirmed'))
 
@@ -137,7 +129,7 @@ const selectedInviteForPopup = computed(() => {
     id: selectedInvite.value.id,
     senderName: selectedInvite.value.senderName,
     title: `與 ${selectedInvite.value.senderName} 的邀約`,
-    date: '2025-11-20',
+    date: '2025-11-20', // 因為後端目前沒回傳日期，暫時寫死或之後補上
     day: '六',
     stationName: selectedInvite.value.stationName,
     location: selectedInvite.value.location,
@@ -145,24 +137,38 @@ const selectedInviteForPopup = computed(() => {
   }
 })
 
+// --- Actions ---
+
 const handleViewDetails = (invite: InviteHistoryItem) => {
   selectedInvite.value = invite
   showDetailPopup.value = true
 }
 
-const handleConfirmAppointment = (id: number) => {
+const handleConfirmAppointment = async (id: number) => {
   const target = allInvites.value.find((i) => i.id === id)
   if (target) {
     if (confirm(`確定要赴約 ${target.senderName} 的邀約嗎？`)) {
-      target.status = 'confirmed'
-      activeTab.value = 1
+      try {
+        await request.patch(`/api/matches/${id}/status`, { status: 'confirmed' })
+        // 更新前端狀態 (不用重刷頁面)
+        target.status = 'confirmed'
+        activeTab.value = 1
+      } catch (error) {
+        alert('更新失敗')
+      }
     }
   }
 }
 
-const handleDecline = (id: number) => {
+const handleDecline = async (id: number) => {
   if (confirm('確定要婉拒這個邀約嗎？此動作無法復原。')) {
-    allInvites.value = allInvites.value.filter((i) => i.id !== id)
+    try {
+      await request.patch(`/api/matches/${id}/status`, { status: 'rejected' })
+      // 從列表中移除
+      allInvites.value = allInvites.value.filter((i) => i.id !== id)
+    } catch (error) {
+      alert('更新失敗')
+    }
   }
 }
 
@@ -176,6 +182,7 @@ const openChatRoom = () => {
 </script>
 
 <style scoped>
+/* Style 保持不變 */
 @keyframes fadeIn {
   from {
     opacity: 0;

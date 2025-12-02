@@ -4,44 +4,55 @@ import { ref, computed } from 'vue'
 export type RoleType = 'guest' | 'user' | 'admin'
 
 export const useRoleStore = defineStore('role', () => {
-  // --- 修正重點 1：State 初始化 ---
-  // 不要只寫 ref('guest')
-  // 要先嘗試從 localStorage 讀取，讀不到才用 'guest'
   const role = ref<RoleType>((localStorage.getItem('meetro_role') as RoleType) || 'guest')
+  const token = ref<string>(localStorage.getItem('meetro_token') || '')
 
-  // --- Getters ---
   const currentRole = computed(() => role.value)
   const isGuest = computed(() => role.value === 'guest')
   const isUser = computed(() => role.value === 'user')
   const isAdmin = computed(() => role.value === 'admin')
+  const isAuthenticated = computed(() => !!token.value)
 
-  // --- 修正重點 2：Actions 寫入 ---
-  // 每次改變身分時，都要同步寫入 localStorage
+  // 設定登入狀態 (同時存 role 和 token)
+  function setLoginState(newRole: RoleType, newToken: string) {
+    role.value = newRole
+    token.value = newToken
+    localStorage.setItem('meetro_role', newRole)
+    localStorage.setItem('meetro_token', newToken)
+  }
+
+  // 純設定身分 (保留給舊代碼相容，或手動切換用)
   function setRole(newRole: RoleType) {
     role.value = newRole
     localStorage.setItem('meetro_role', newRole)
   }
 
+  // 登出 (清除所有)
+  function logout() {
+    role.value = 'guest'
+    token.value = ''
+    localStorage.removeItem('meetro_role')
+    localStorage.removeItem('meetro_token')
+  }
+
+  // 模擬登入 (可以保留或移除，建議保留方便測試)
   function loginAsUser() {
     setRole('user')
   }
-
   function loginAsAdmin() {
     setRole('admin')
   }
 
-  function logout() {
-    setRole('guest')
-    localStorage.removeItem('meetro_role') // 登出時清除
-  }
-
   return {
     role,
+    token, // 匯出 token
     currentRole,
     isGuest,
     isUser,
     isAdmin,
+    isAuthenticated,
     setRole,
+    setLoginState, // 匯出 setLoginState
     loginAsUser,
     loginAsAdmin,
     logout,

@@ -4,8 +4,13 @@ import requests
 from typing import Dict, List, Optional
 from datetime import datetime
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends
 from fastapi.responses import JSONResponse
+
+# 引入 DB 相關模組
+from sqlalchemy.orm import Session
+from database import SessionLocal
+from models import Station, Attraction
 
 # 建立 Router
 router = APIRouter(prefix="/api", tags=["weather_map"])
@@ -14,11 +19,9 @@ router = APIRouter(prefix="/api", tags=["weather_map"])
 #         設定與常數
 # -----------------------------------
 
-# 中央氣象署開放資料平臺之資料擷取API
 CWA_URL = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001"
 CWA_API_KEY = "CWA-624BB740-DC7B-48E2-9002-B077B72CB174"
 
-# Google Maps API
 GOOGLE_API_KEY = "AIzaSyAtF8UQRBtvHLVok_s7h2ItjLs0gaOFrqs"
 GOOGLE_DETAILS_URL = "https://maps.googleapis.com/maps/api/place/details/json"
 GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -46,12 +49,15 @@ STATION_LOCATION_MAP = {
     "xindian": "新北市",
 }
 
-# 靜態景點資料 (目前尚未有資料庫，先暫存於此)
-STATION_ATTRACTIONS = {
-    "songshan": ["饒河街夜市", "松山慈祐宮", "彩虹橋"],
-    "gongguan": ["國立臺灣大學", "水源市場", "寶藏巖"],
-    "xindian": ["碧潭吊橋", "和美山步道", "新店老街"],
-}
+
+# --- Dependency ---
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 # -----------------------------------
 #         工具函式
@@ -61,7 +67,7 @@ STATION_ATTRACTIONS = {
 def fetch_cwa_wx(location_name: str, retries: int = 1, timeout: int = 5) -> Dict:
     token = os.environ.get("CWA_API_KEY") or CWA_API_KEY
     params = {
-        "Authorization": CWA_API_KEY,
+        "Authorization": token,
         "format": "JSON",
         "locationName": location_name,
         "elementName": "Wx,MinT,MaxT",
@@ -74,10 +80,7 @@ def fetch_cwa_wx(location_name: str, retries: int = 1, timeout: int = 5) -> Dict
             resp = requests.get(CWA_URL, params=params, timeout=timeout)
             if resp.status_code == 200:
                 return resp.json()
-            else:
-                print(f"[Backend] CWA Error {resp.status_code}: {resp.text}")
-        except Exception as e:
-            print(f"[Backend] Connection Error: {e}")
+        except:
             time.sleep(0.5)
     return {}
 
@@ -125,20 +128,34 @@ def parse_weather_info(cwa_data: Dict) -> str:
 
 
 @router.get("/stations/{station_key}")
-def get_station_info(station_key: str):
+def get_station_info(
+    station_key: str, db: Session = Depends(get_db)  # 注入資料庫 Session
+):
     """首頁：取得站點天氣與景點"""
 
-    # 1. 取得縣市
-    city = STATION_LOCATION_MAP.get(station_key.lower(), "臺北市")
+    print(f"[API] 查詢站點: {station_key}")
 
-    # 2. 抓取天氣
+    # 1. 查詢資料庫取得景點
+    # 先找站點
+    station = db.query(Station).filter(Station.key == station_key.lower()).first()
+
+    attractions_list = []
+    if station:
+        # 透過關聯取得景點 (models.py 裡有定義 relationship)
+        attractions_list = [attr.name for attr in station.attractions]
+    else:
+        attractions_list = ["(資料庫中無此站點資料)"]
+
+    # 2. 取得天氣 (邏輯不變)
+    city = STATION_LOCATION_MAP.get(station_key.lower(), "臺北市")
     cwa_data = fetch_cwa_wx(city)
     weather_str = parse_weather_info(cwa_data)
 
-    # 3. 取得景點
-    attractions = STATION_ATTRACTIONS.get(station_key.lower(), ["周邊景點探索中..."])
-
-    return {"key": station_key, "weather": weather_str, "attractions": attractions}
+    return {
+        "key": station_key,
+        "weather": weather_str,
+        "attractions": attractions_list,  # 回傳資料庫撈到的列表
+    }
 
 
 @router.get("/google/place-info")

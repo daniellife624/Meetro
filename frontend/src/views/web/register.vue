@@ -134,6 +134,7 @@
 </template>
 
 <script setup lang="ts">
+import request from '@/utils/request'
 import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLoadingStore } from '@/stores/modules/loading'
@@ -161,15 +162,24 @@ const handleRegister = async () => {
   loadingStore.setLoading(true, '註冊中...')
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    // 呼叫後端 API
+    // 注意這裡的 payload 欄位名稱要對應 schemas.UserCreate
+    await request.post('/auth/register', {
+      email: form.username, // form.username 是 Email
+      password: form.password,
+      username: form.name, // form.name 是 姓名 (對應 schema 的 username)
+      gender: form.gender,
+      birthday: form.birthday,
+    })
 
-    console.log('註冊 Payload:', form)
+    console.log('註冊成功')
     alert('註冊成功！請使用新帳號登入。')
 
     router.push({ name: 'WebLogin' })
-  } catch (error) {
+  } catch (error: any) {
     console.error(error)
-    alert('註冊失敗')
+    const msg = error.response?.data?.detail || '註冊失敗'
+    alert(msg)
   } finally {
     loadingStore.setLoading(false)
   }

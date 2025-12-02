@@ -1,13 +1,14 @@
 # backend/place_routes.py
-# Google Maps /places API
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 import requests
 
-router = APIRouter(prefix="/places", tags=["places"])
+# 建立 Router
+router = APIRouter(prefix="/api/places", tags=["places"])
 
-API_KEY = "你的 Google API Key 放這裡"
+API_KEY = "AIzaSyAtF8UQRBtvHLVok_s7h2ItjLs0gaOFrqs"
 
+# 捷運綠線座標表
 GREEN_LINE_STATIONS = {
     "songshan": (25.049554, 121.578002),
     "nanjingsanmin": (25.051809, 121.566062),
@@ -28,7 +29,7 @@ GREEN_LINE_STATIONS = {
     "qizhang": (24.974834, 121.541695),
     "xiaobitan": (24.9731, 121.52999),
     "xindiandistrictoffice": (24.967936, 121.541273),
-    "xindian": (24.957595, 121.537861)
+    "xindian": (24.957595, 121.537861),
 }
 
 
@@ -41,49 +42,56 @@ def get_nearby_places(lat, lng, keyword="cafe", radius=1500):
         "keyword": keyword,
         "language": "zh-TW",
         "type": "establishment",
-        "key": API_KEY
+        "key": API_KEY,
     }
 
-    response = requests.get(url, params=params).json()
-    print("Google API Response Status:", response.get("status"))
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        data = response.json()
 
-    results = []
-    for place in response.get("results", []):
-        name = place.get("name")
-        rating = place.get("rating")
-        address = place.get("vicinity")
-        place_id = place.get("place_id")
-        google_url = f"https://www.google.com/maps/place/?q=place_id:{place_id}"
+        results = []
+        # 限制回傳數量，避免資料過多
+        for place in data.get("results", [])[:15]:
+            place_id = place.get("place_id")
 
-        results.append({
-            "name": name,
-            "rating": rating,
-            "address": address,
-            "lat": place["geometry"]["location"]["lat"],
-            "lng": place["geometry"]["location"]["lng"],
-            "google_map_url": google_url
-        })
+            # 安全取得經緯度
+            location = place.get("geometry", {}).get("location", {})
 
-    return results
+            results.append(
+                {
+                    "name": place.get("name"),
+                    "rating": place.get("rating", 0),
+                    "user_ratings_total": place.get("user_ratings_total", 0),
+                    "address": place.get("vicinity"),
+                    "lat": location.get("lat"),
+                    "lng": location.get("lng"),
+                    "google_map_url": f"https://www.google.com/maps/place/?q=place_id:{place_id}",
+                }
+            )
+        return results
+    except Exception as e:
+        print(f"[Backend] Place API Error: {e}")
+        return []
 
 
-@router.get("")
-def get_places(
-    station: str = Query(...),
-    keyword: str = Query("cafe")
-):
-    if station not in GREEN_LINE_STATIONS:
+@router.get("")  # 對應路徑: /api/places
+def get_places(station: str = Query(...), keyword: str = Query("cafe")):
+    station_key = station.lower()
+
+    if station_key not in GREEN_LINE_STATIONS:
         return JSONResponse(
             status_code=400,
-            content={"error": f"站名錯誤，可用站名：{list(GREEN_LINE_STATIONS.keys())}"}
+            content={
+                "error": f"站名錯誤，可用站名：{list(GREEN_LINE_STATIONS.keys())}"
+            },
         )
 
-    lat, lng = GREEN_LINE_STATIONS[station]
+    lat, lng = GREEN_LINE_STATIONS[station_key]
     places = get_nearby_places(lat, lng, keyword)
 
     return {
-        "station": station,
+        "station": station_key,
         "keyword": keyword,
         "total_results": len(places),
-        "results": places
+        "results": places,
     }
