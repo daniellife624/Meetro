@@ -9,6 +9,8 @@ from user_routes import router as user_router
 from place_routes import router as place_router
 from weather_map import router as weather_router
 from history_routes import router as history_router
+from ema_routes import router as ema_router
+from invite_routes import router as invite_router
 
 app = FastAPI(
     title="Meetro Backend",
@@ -35,6 +37,8 @@ app.include_router(user_router)  # 負責 /auth/login, /auth/register
 app.include_router(place_router)  # 負責捷運站
 app.include_router(weather_router)  # 負責天氣
 app.include_router(history_router)  # 負責歷史紀錄
+app.include_router(ema_router)
+app.include_router(invite_router)
 
 
 @app.get("/")

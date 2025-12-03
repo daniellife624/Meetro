@@ -1,6 +1,7 @@
 # backend/schemas.py
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import datetime
 
 
 class UserBase(BaseModel):
@@ -36,3 +37,49 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+# 繪馬
+class EmaCreate(BaseModel):
+    station_key: str  # 前端傳來站點代號 (e.g. 'songshan')
+    location: str  # 探索地點名稱
+    content: str  # 心得
+    photo_url: Optional[str] = None  # 照片 (Base64 或 URL)
+
+
+class EmaOut(BaseModel):
+    id: int
+    userName: str  # 為了配合前端 EmaCard，直接回傳姓名
+    location: str  # 對應 location_text
+    content: str
+    photoUrl: Optional[str] = None
+    date: str  # 格式化後的日期字串
+
+    class Config:
+        from_attributes = True
+
+
+# 邀約
+class InviteCreate(BaseModel):
+    title: str
+    meet_time: datetime
+    location_name: str
+    latitude: float
+    longitude: float
+    station_key: str
+
+
+class InviteOut(BaseModel):
+    id: int
+    title: str
+    meet_time: datetime
+    location_name: str
+    # 為了方便前端顯示，這裡可以巢狀 UserOut 或只回傳 senderName
+    sender_id: int
+    station_key: Optional[str] = None  # 可選
+
+    # 如果要讓前端直接拿到 senderName，可以在 models.py 加 property 或是這裡用 Nested Model
+    # 這裡簡化，假設前端會再處理或改用特定 Response Model
+
+    class Config:
+        from_attributes = True

@@ -1,3 +1,4 @@
+# 包含接受邀約、邀約歷史紀錄
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
@@ -97,3 +98,46 @@ def update_match_status(
     db.refresh(match_obj)
 
     return {"message": "更新成功", "status": match_obj.status}
+
+
+@router.post("/{invite_id}/accept")
+def accept_invite(
+    invite_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # 1. 檢查邀約是否存在且開放
+    invite = (
+        db.query(Invite).filter(Invite.id == invite_id, Invite.status == "open").first()
+    )
+    if not invite:
+        raise HTTPException(status_code=404, detail="邀約不存在或已關閉")
+
+    # 2. 檢查是否自己發的 (不能接受自己的邀約)
+    if invite.sender_id == current_user.id:
+        raise HTTPException(status_code=400, detail="不能接受自己的邀約")
+
+    # 3. 檢查是否已經接受過
+    existing = (
+        db.query(Match)
+        .filter(Match.invite_id == invite_id, Match.receiver_id == current_user.id)
+        .first()
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="已經接受過此邀約")
+
+    # 4. 建立 Match
+    new_match = Match(
+        invite_id=invite_id,
+        receiver_id=current_user.id,
+        status="pending",
+        created_at=datetime.now(),
+    )
+    db.add(new_match)
+
+    # 5. (選擇性) 將邀約狀態改為 'matched' 或保持 open 讓多人接受?
+    # 這裡假設一對一，接受後就關閉
+    # invite.status = "matched"
+
+    db.commit()
+    return {"message": "成功接受邀約", "match_id": new_match.id}

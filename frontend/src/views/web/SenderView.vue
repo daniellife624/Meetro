@@ -34,7 +34,7 @@
             id="invite-title"
             v-model="invitation.title"
             rows="3"
-            placeholder="請簡述您的邀約內容 (例如：在綠線XX站附近找人一起打電動、看展覽...)"
+            placeholder="請簡述您的邀約內容..."
             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#286047] focus:border-transparent transition-colors resize-none"
             maxlength="50"
           ></textarea>
@@ -72,10 +72,11 @@
       <div class="flex justify-end items-center pt-6 border-t border-gray-200 mt-6">
         <button
           @click="sendInvitation"
-          :disabled="!isFormValid"
-          class="bg-[#008659] text-white font-bold px-12 py-3 rounded-full hover:bg-green-700 transition-colors disabled:bg-gray-400 shadow-xl"
+          :disabled="!isFormValid || isSubmitting"
+          class="bg-[#008659] text-white font-bold px-12 py-3 rounded-full hover:bg-green-700 transition-colors disabled:bg-gray-400 shadow-xl flex items-center gap-2"
         >
-          發送邀約
+          <span v-if="isSubmitting">發送中...</span>
+          <span v-else>發送邀約</span>
         </button>
       </div>
     </div>
@@ -161,8 +162,8 @@ const invitation = ref({
 })
 
 const showSuccessModal = ref(false)
+const isSubmitting = ref(false) // 防止重複提交
 
-// 簡化版資料 (使用 String Icon Name)
 const introSteps = [
   {
     title: 'STEP 1: 選擇捷運站',
@@ -174,15 +175,10 @@ const introSteps = [
     content: '1. 想找人一起參與 (發送方)\n2. 尋找有趣活動 (選擇方)',
     icon: 'target',
   },
-  {
-    title: 'STEP 3: 發送邀約',
-    content:
-      '點選該捷運站後，即會跳出輸入欄位完成邀約目的（事）、邀約時間（時）、邀約地點（地），即可立即發送邀約',
-    icon: 'send',
-  },
+  { title: 'STEP 3: 發送邀約', content: '點選該捷運站後，即會跳出輸入欄位...', icon: 'send' },
   {
     title: 'STEP 4: 填寫滿意度',
-    content: '完成邀約後，系統會引導您填寫本次體驗的滿意度，以便優化配對服務。',
+    content: '完成邀約後，系統會引導您填寫本次體驗...',
     icon: 'check',
   },
   {
@@ -245,7 +241,6 @@ const initMap = () => {
     invitation.value.latLng = `${place.geometry.location.lat()},${place.geometry.location.lng()}`
   })
 
-  // 點擊地圖時呼叫後端 API 查詢地點
   map.addListener('click', async (e: any) => {
     const lat = e.latLng.lat()
     const lng = e.latLng.lng()
@@ -255,7 +250,6 @@ const initMap = () => {
     invitation.value.locationName = '正在查詢地點...'
 
     try {
-      // 呼叫 /api/google/place-info (位於 weather_map.py)
       const res: any = await request.get('/api/google/place-info', { params: { lat, lng } })
       if (res.name) {
         invitation.value.locationName = res.name
@@ -275,17 +269,38 @@ const initMap = () => {
   })
 }
 
-const sendInvitation = () => {
+// --- 修正：呼叫真實 API ---
+const sendInvitation = async () => {
   if (!isFormValid.value) return
-  const inviteData = {
-    ...invitation.value,
-    createdAt: new Date().toISOString(),
-    status: 'pending',
+  isSubmitting.value = true
+
+  try {
+    // 拆解 lat, lng
+    const [latStr, lngStr] = invitation.value.latLng.split(',')
+    const lat = parseFloat(latStr)
+    const lng = parseFloat(lngStr)
+
+    await request.post('/api/invites', {
+      title: invitation.value.title,
+      meet_time: invitation.value.time, // string: YYYY-MM-DDTHH:mm
+      location_name: invitation.value.locationName,
+      latitude: lat,
+      longitude: lng,
+      station_key: props.stationKey,
+    })
+
+    console.log('邀約資料已送出')
+    showSuccessModal.value = true
+
+    // 清空
+    invitation.value.title = ''
+    invitation.value.time = ''
+  } catch (error: any) {
+    console.error(error)
+    alert('發送失敗：' + (error.response?.data?.detail || '未知錯誤'))
+  } finally {
+    isSubmitting.value = false
   }
-  console.log('邀約資料已送出:', inviteData)
-  showSuccessModal.value = true
-  invitation.value.title = ''
-  invitation.value.time = ''
 }
 
 const goHome = () => {
@@ -296,6 +311,7 @@ const goHome = () => {
 
 onMounted(() => {
   const script = document.createElement('script')
+  // 請確認這裡填入有效的 Key (或維持您原本的字串)
   script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAtF8UQRBtvHLVok_s7h2ItjLs0gaOFrqs&libraries=places&callback=initMap`
   script.async = true
   script.defer = true
