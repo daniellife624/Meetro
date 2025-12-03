@@ -11,6 +11,8 @@ from backend.weather_map import router as weather_router
 from backend.history_routes import router as history_router
 from backend.ema_routes import router as ema_router
 from backend.invite_routes import router as invite_router
+from backend.success_routes import router as success_router
+
 
 app = FastAPI(
     title="Meetro Backend",
@@ -39,6 +41,7 @@ app.include_router(weather_router)  # 負責天氣
 app.include_router(history_router)  # 負責歷史紀錄
 app.include_router(ema_router)
 app.include_router(invite_router)
+app.include_router(success_router)  # 計算成功率模擬
 
 
 @app.get("/")
