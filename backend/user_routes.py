@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import schemas
-from database import SessionLocal
-from models import User
-from security import verify_password, hash_password
-from auth import create_access_token, get_current_user, get_admin_user
+import backend.schemas
+from backend.database import SessionLocal
+from backend.models import User
+from backend.security import verify_password, hash_password
+from backend.auth import create_access_token, get_current_user, get_admin_user, ROLE_USER
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -19,8 +19,8 @@ def get_db():
 
 
 # 註冊 API
-@router.post("/register", response_model=schemas.UserOut)
-def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
+@router.post("/register", response_model=backend.schemas.UserOut)
+def register(user_in: backend.schemas.UserCreate, db: Session = Depends(get_db)):
     # 1. 檢查 Email 是否存在
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
@@ -31,7 +31,7 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
         email=user_in.email,
         name=user_in.username,  # 對應 schemas 的 username 到 models 的 name
         hashed_password=hash_password(user_in.password),
-        role="user",
+        role=ROLE_USER,
         gender=user_in.gender,
         birthday=user_in.birthday,
     )
@@ -43,8 +43,8 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 # 登入 API (這就是你消失的那一段！)
-@router.post("/login", response_model=schemas.Token)
-def login(user_in: schemas.UserLogin, db: Session = Depends(get_db)):
+@router.post("/login", response_model=backend.schemas.Token)
+def login(user_in: backend.schemas.UserLogin, db: Session = Depends(get_db)):
     # 1. 查詢使用者
     user = db.query(User).filter(User.email == user_in.email).first()
 
@@ -63,7 +63,7 @@ def login(user_in: schemas.UserLogin, db: Session = Depends(get_db)):
 
 
 # 取得個人資料 API
-@router.get("/me", response_model=schemas.UserOut)
+@router.get("/me", response_model=backend.schemas.UserOut)
 def read_me(current_user: User = Depends(get_current_user)):
     return current_user
 

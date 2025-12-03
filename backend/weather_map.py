@@ -9,8 +9,8 @@ from fastapi.responses import JSONResponse
 
 # 引入 DB 相關模組
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import Station, Attraction
+from backend.database import SessionLocal
+from backend.models import Station, Attraction
 
 # 建立 Router
 router = APIRouter(prefix="/api", tags=["weather_map"])
@@ -195,3 +195,52 @@ def get_place_info(lat: float = Query(...), lng: float = Query(...)):
     except Exception as e:
         print(f"[Backend] Google API Error: {e}")
         return {"name": "地圖點擊位置", "address": ""}
+
+
+# -----------------------------------
+#   天氣與地點評分工具 (NEW)
+# -----------------------------------
+
+def compute_weather_score(station_key: str) -> float:
+    """
+    輸入捷運站 key，使用既有函式 fetch_cwa_wx() + parse_weather_info()
+    回傳 0~100 的天氣分數
+    """
+    city = STATION_LOCATION_MAP.get(station_key.lower(), "臺北市")
+    cwa_data = fetch_cwa_wx(city)
+    wx_text = parse_weather_info(cwa_data)  # 例如：多雲時晴，氣溫 18-23°C
+
+    score = 100
+
+    # ---- 主／副天氣扣分邏輯 ----
+    if "雨" in wx_text:
+        score -= 20
+    if "雷" in wx_text:
+        score -= 30
+    if "陰" in wx_text:
+        score -= 10
+    if "多雲" in wx_text:
+        score -= 5
+    if "涼" in wx_text:
+        score -= 5
+    if "炎熱" in wx_text:
+        score -= 5
+
+    return max(0, min(100, score))
+
+def compute_place_score(lat: float, lng: float) -> float:
+    """
+    使用 get_place_info() 的 Google 評分，回傳 0~100 分。
+    """
+    try:
+        place = get_place_info(lat, lng)
+
+        rating = place.get("rating", 0.0)  # Google rating 1~5
+        if not rating:
+            return 60.0  # 沒資料，給一個保守值
+
+        return (rating / 5.0) * 100.0
+
+    except Exception as e:
+        print("[Backend] Compute place score error:", e)
+        return 60.0

@@ -4,9 +4,12 @@ from typing import Optional
 from datetime import datetime
 
 
-class UserBase(BaseModel):
+class UserBasic(BaseModel):
     email: EmailStr
-    username: str | None = None
+    name: str | None = None
+
+    class Config:
+        from_attributes = True
 
 
 class UserCreate(BaseModel):
@@ -74,12 +77,9 @@ class InviteOut(BaseModel):
     title: str
     meet_time: datetime
     location_name: str
-    # 為了方便前端顯示，這裡可以巢狀 UserOut 或只回傳 senderName
-    sender_id: int
-    station_key: Optional[str] = None  # 可選
-
-    # 如果要讓前端直接拿到 senderName，可以在 models.py 加 property 或是這裡用 Nested Model
-    # 這裡簡化，假設前端會再處理或改用特定 Response Model
+    latitude: float
+    longitude: float
+    sender: UserBasic
 
     class Config:
         from_attributes = True
