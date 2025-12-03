@@ -83,7 +83,6 @@ import MeetroIntroCard from '@/components/cards/MeetroIntroCard.vue'
 import InviteItem from '@/components/items/InviteItem.vue'
 import InviteDetailPopup from '@/components/web/PopupBox/InviteDetailPopup.vue'
 import SvgItem from '@/components/icons/SvgItem.vue'
-// 引入 request 工具 (如果你要開始串 API 的話)
 import request from '@/utils/request'
 
 const stationMap: Record<string, string> = {
@@ -145,7 +144,7 @@ const loadInvites = async (key: string) => {
           title: item.title,
           // 後端 InviteOut 回傳 sender_id，若要名字需在後端加載或前端額外查詢
           // 這裡暫時顯示 '未知用戶' 或後端改為回傳 Nested User Object
-          senderName: '未知用戶',
+          senderName: item.sender ? item.sender.name : '未知用戶',
           date: dateStr,
           day: dayMap[d.getDay()],
           location: item.location_name,
