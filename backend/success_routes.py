@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from backend.database import SessionLocal
-from backend.auth import get_current_user
-from backend.models import User, Match
-from backend.weather_map import compute_weather_score, compute_place_score
+from database import SessionLocal
+from auth import get_current_user
+from models import User, Match
+from weather_map import compute_weather_score, compute_place_score
 
 router = APIRouter(prefix="/success", tags=["success"])
 
@@ -44,22 +44,17 @@ def estimate_success_rate(
     matches = (
         db.query(Match)
         .filter(
-            Match.receiver_id == current_user.id,
-            Match.satisfaction_score.isnot(None)
+            Match.receiver_id == current_user.id, Match.satisfaction_score.isnot(None)
         )
         .all()
     )
 
     if matches:
         raw_scores = [m.satisfaction_score for m in matches]
-        avg_raw = sum(raw_scores) / len(raw_scores)   # 平均 1~5
-        history_score = (avg_raw / 5.0) * 100         # 轉成 0~100
+        avg_raw = sum(raw_scores) / len(raw_scores)  # 平均 1~5
+        history_score = (avg_raw / 5.0) * 100  # 轉成 0~100
         history_label = "有紀錄"
-        success_rate = (
-            weather_score * 0.30 +
-            place_score * 0.20 +
-            history_score * 0.50
-        )
+        success_rate = weather_score * 0.30 + place_score * 0.20 + history_score * 0.50
         success_rate = round(max(0, min(100, success_rate)), 2)
 
     else:

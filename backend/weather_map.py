@@ -9,8 +9,8 @@ from fastapi.responses import JSONResponse
 
 # 引入 DB 相關模組
 from sqlalchemy.orm import Session
-from backend.database import SessionLocal
-from backend.models import Station, Attraction
+from database import SessionLocal
+from models import Station
 
 # 建立 Router
 router = APIRouter(prefix="/api", tags=["weather_map"])
@@ -201,6 +201,7 @@ def get_place_info(lat: float = Query(...), lng: float = Query(...)):
 #   天氣與地點評分工具 (NEW)
 # -----------------------------------
 
+
 def compute_weather_score(station_key: str) -> float:
     """
     輸入捷運站 key，使用既有函式 fetch_cwa_wx() + parse_weather_info()
@@ -227,6 +228,7 @@ def compute_weather_score(station_key: str) -> float:
         score -= 5
 
     return max(0, min(100, score))
+
 
 def compute_place_score(lat: float, lng: float) -> float:
     """

@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from pydantic import BaseModel
 
-from backend.database import SessionLocal
-from backend.models import Match, Invite, User, Station
-from backend.auth import get_current_user
+from database import SessionLocal
+from models import Match, Invite, User, Station
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/matches", tags=["matches"])
 

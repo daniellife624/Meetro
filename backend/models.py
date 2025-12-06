@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from backend.database import Base
+from database import Base
 
 
 # 1. 會員表 (Users)
@@ -24,10 +24,10 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(16), nullable=False)
     name = Column(String(20), nullable=False)
-    gender = Column(String,nullable=True) 
+    gender = Column(String, nullable=True)
     birthday = Column(String, nullable=True)
 
-    role = Column(Integer,default=2,nullable=False)
+    role = Column(Integer, default=2, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # 關聯
@@ -52,12 +52,12 @@ class Station(Base):
 
 
 # 3. 景點表
-'''class Attraction(Base):
+"""class Attraction(Base):
     __tablename__ = "attractions"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     station_id = Column(Integer, ForeignKey("stations.id"))
-    station = relationship("Station", back_populates="attractions")'''
+    station = relationship("Station", back_populates="attractions")"""
 
 
 # 4. 邀約表
@@ -86,11 +86,11 @@ class Match(Base):
     id = Column(Integer, primary_key=True, index=True)
     invite_id = Column(Integer, ForeignKey("invites.id"))
     receiver_id = Column(Integer, ForeignKey("users.id"))
-    status = Column(Integer,default=1,nullable=False)  # pending, confirmed, rejected
+    status = Column(Integer, default=1, nullable=False)  # pending, confirmed, rejected
     satisfaction_score = Column(Integer, nullable=True)
     __table_args__ = (
-    CheckConstraint("satisfaction_score <= 100", name="satisfaction_score_max_100"),
-)
+        CheckConstraint("satisfaction_score <= 100", name="satisfaction_score_max_100"),
+    )
     # feedback = Column(Text, nullable=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
