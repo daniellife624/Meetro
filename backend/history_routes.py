@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from backend.database import SessionLocal
 from backend.models import Match, Invite, User, Station
 from backend.auth import get_current_user
+import datetime
 
 router = APIRouter(prefix="/api/matches", tags=["matches"])
 
@@ -106,38 +107,49 @@ def accept_invite(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 1. 檢查邀約是否存在且開放
+    # 1.檢查邀約是否存在且為 open
     invite = (
-        db.query(Invite).filter(Invite.id == invite_id, Invite.status == "open").first()
+        db.query(Invite)
+        .filter(Invite.id == invite_id, Invite.status == "open")
+        .first()
     )
     if not invite:
         raise HTTPException(status_code=404, detail="邀約不存在或已關閉")
 
-    # 2. 檢查是否自己發的 (不能接受自己的邀約)
+    # 2.不能接受自己發的邀約
     if invite.sender_id == current_user.id:
         raise HTTPException(status_code=400, detail="不能接受自己的邀約")
 
-    # 3. 檢查是否已經接受過
+    # 3.檢查自己是否已經接受過這個邀約
     existing = (
         db.query(Match)
-        .filter(Match.invite_id == invite_id, Match.receiver_id == current_user.id)
+        .filter(
+            Match.invite_id == invite_id,
+            Match.receiver_id == current_user.id
+        )
         .first()
     )
     if existing:
         raise HTTPException(status_code=400, detail="已經接受過此邀約")
 
-    # 4. 建立 Match
+    # 4.建立配對紀錄，直接視為「已接受」
     new_match = Match(
         invite_id=invite_id,
         receiver_id=current_user.id,
-        status="pending",
+        status="accepted",          # ★ 這裡改成 accepted
         created_at=datetime.now(),
     )
     db.add(new_match)
 
-    # 5. (選擇性) 將邀約狀態改為 'matched' 或保持 open 讓多人接受?
-    # 這裡假設一對一，接受後就關閉
-    # invite.status = "matched"
+    # 5.一對一：有人接受後就關閉邀約
+    invite.status = "matched"       # ★ 關閉這個邀約
 
     db.commit()
-    return {"message": "成功接受邀約", "match_id": new_match.id}
+    db.refresh(new_match)
+    db.refresh(invite)
+
+    return {
+        "message": "成功接受邀約",
+        "match_id": new_match.id,
+        "invite_status": invite.status,
+    }
