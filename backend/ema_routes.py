@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List
 from datetime import datetime
 
-from backend.database import SessionLocal
-from backend.models import Ema, Station, User
-from backend.auth import get_current_user
-import backend.schemas
+from database import SessionLocal
+from models import Ema, Station, User
+from auth import get_current_user
+import schemas
 
 router = APIRouter(prefix="/api/emas", tags=["emas"])
 
@@ -23,7 +23,7 @@ def get_db():
 
 
 # 1. 取得特定站點的繪馬牆
-@router.get("/{station_key}", response_model=List[backend.schemas.EmaOut])
+@router.get("/{station_key}", response_model=List[schemas.EmaOut])
 def get_station_emas(station_key: str, db: Session = Depends(get_db)):
     # 先找出站點 ID
     station = db.query(Station).filter(Station.key == station_key.lower()).first()
@@ -58,9 +58,9 @@ def get_station_emas(station_key: str, db: Session = Depends(get_db)):
 
 
 # 2. 新增繪馬 (需登入)
-@router.post("", response_model=backend.schemas.EmaOut)
+@router.post("", response_model=schemas.EmaOut)
 def create_ema(
-    ema_in: backend.schemas.EmaCreate,
+    ema_in: schemas.EmaCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

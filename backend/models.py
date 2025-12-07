@@ -8,10 +8,12 @@ from sqlalchemy import (
     Float,
     Text,
     DateTime,
+    Enum,
+    CheckConstraint,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from backend.database import Base
+from database import Base
 
 
 # 1. 會員表 (Users)
@@ -19,14 +21,13 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    name = Column(String, nullable=False)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(16), nullable=False)
+    name = Column(String(20), nullable=False)
     gender = Column(String, nullable=True)
     birthday = Column(String, nullable=True)
 
-    role = Column(String, default="user")
-    avatar_url = Column(String, nullable=True)
+    role = Column(Integer, default=2, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # 關聯
@@ -39,24 +40,24 @@ class User(Base):
 class Station(Base):
     __tablename__ = "stations"
     id = Column(Integer, primary_key=True, index=True)
-    key = Column(String, unique=True, index=True)
+    key = Column(String(50), unique=True, index=True)
     name_zh = Column(String, nullable=False)
-    line_code = Column(String, nullable=True)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    line_code = Column(String(10), nullable=True)
+    # latitude = Column(Float, nullable=True)
+    # longitude = Column(Float, nullable=True)
 
-    attractions = relationship("Attraction", back_populates="station")
+    # attractions = relationship("Attraction", back_populates="station")
     invites = relationship("Invite", back_populates="station")
     emas = relationship("Ema", back_populates="station")
 
 
 # 3. 景點表
-class Attraction(Base):
+"""class Attraction(Base):
     __tablename__ = "attractions"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     station_id = Column(Integer, ForeignKey("stations.id"))
-    station = relationship("Station", back_populates="attractions")
+    station = relationship("Station", back_populates="attractions")"""
 
 
 # 4. 邀約表
@@ -65,13 +66,13 @@ class Invite(Base):
     id = Column(Integer, primary_key=True, index=True)
     sender_id = Column(Integer, ForeignKey("users.id"))
     station_id = Column(Integer, ForeignKey("stations.id"))
-    title = Column(String, nullable=False)
-    description = Column(Text, nullable=True)
+    title = Column(String(100), nullable=False)
+    description = Column(String(100), nullable=True)
     meet_time = Column(DateTime, nullable=False)
-    location_name = Column(String, nullable=False)
+    location_name = Column(String(100), nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    status = Column(String, default="open")
+    # status = Column(String, default="open")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     sender = relationship("User", back_populates="invites_sent")
@@ -85,9 +86,12 @@ class Match(Base):
     id = Column(Integer, primary_key=True, index=True)
     invite_id = Column(Integer, ForeignKey("invites.id"))
     receiver_id = Column(Integer, ForeignKey("users.id"))
-    status = Column(String, default="pending")
+    status = Column(Integer, default=1, nullable=False)  # pending, confirmed, rejected
     satisfaction_score = Column(Integer, nullable=True)
-    feedback = Column(Text, nullable=True)
+    __table_args__ = (
+        CheckConstraint("satisfaction_score <= 100", name="satisfaction_score_max_100"),
+    )
+    # feedback = Column(Text, nullable=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -101,8 +105,8 @@ class Ema(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     station_id = Column(Integer, ForeignKey("stations.id"))
-    content = Column(Text, nullable=False)
-    location_text = Column(String, nullable=False)
+    content = Column(String(50), nullable=False)
+    location_text = Column(String(100), nullable=False)
     photo_url = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -114,9 +118,9 @@ class Ema(Base):
 class SystemVariable(Base):
     __tablename__ = "system_variables"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
+    name = Column(String(50), unique=True, nullable=False)
     weight = Column(Integer, default=0)
-    rule_desc = Column(Text, nullable=True)
+    rule_desc = Column(String(100), nullable=True)
     updated_at = Column(
         DateTime(timezone=True), onupdate=func.now(), server_default=func.now()
     )
