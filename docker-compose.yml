@@ -10,13 +10,12 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      # 1. 程式碼熱重載：將本地的 backend/ 目錄映射到容器的 /app/backend/
-      # 🚨 這會將所有程式碼同步到容器內，同時也會將 meetro.db 檔案同步出來
+      # 1. 程式碼熱重載 (維持不變)
       - ./backend:/app/backend 
       
-      # 2. 確保 .db 檔案存在：
-      # 當容器啟動時，如果 ./backend/meetro.db 不存在，Docker 會創建它。
-      # 這通常是足夠的，只要您在啟動前刪除本地錯誤的 meetro.db "資料夾"。
+      # 2. 🚨 關鍵修正：映射資料庫 Volume 到 /tmp/
+      # 這會將 /tmp/ 目錄下的所有內容 (包括 meetro.db) 持久化到 Docker 命名 Volume 中。
+      - meetro_data:/tmp/
       
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
@@ -34,3 +33,7 @@ services:
     command: npm run dev -- --host 0.0.0.0 --port 8080
     depends_on:
       - backend
+
+# 🚨 新增命名 Volume 區塊
+volumes:
+  meetro_data:

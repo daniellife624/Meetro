@@ -3,8 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # 1. 設定 SQLite 資料庫檔案位置
-# 檔案會產生在 backend 目錄下的 meetro.db
-SQLALCHEMY_DATABASE_URL = "sqlite:///./meetro.db"
+# 🚨 修正：將路徑改為容器的 /tmp/ 目錄，避免與程式碼 Volume 衝突
+SQLALCHEMY_DATABASE_URL = "sqlite:////tmp/meetro.db"
 
 # 2. 建立 Engine
 # check_same_thread: False 是 SQLite 專用的設定，允許在多執行緒中使用

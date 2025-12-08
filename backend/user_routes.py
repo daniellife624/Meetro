@@ -26,6 +26,10 @@ def get_db():
 # 註冊 API
 @router.post("/register", response_model=backend.schemas.UserOut)
 def register(user_in: backend.schemas.UserCreate, db: Session = Depends(get_db)):
+    password_bytes = user_in.password.encode("utf-8")
+    # 🚨 輸出實際接收到的密碼長度（以 bytes 計算）
+    print(f"DEBUG: Received password length (bytes): {len(password_bytes)}")
+    print(f"DEBUG: Password start (first 10 chars): {user_in.password[:10]}")
     # 1. 檢查 Email 是否存在
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:

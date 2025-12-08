@@ -246,7 +246,8 @@ const initMap = () => {
     const lng = e.latLng.lng()
     marker.setPosition(e.latLng)
 
-    invitation.value.latLng = `${lat}, ${lng}`
+    // 🚨 修正：確保 latLng 字串在逗號後沒有空格
+    invitation.value.latLng = `${lat},${lng}`
     invitation.value.locationName = '正在查詢地點...'
 
     try {
@@ -277,8 +278,10 @@ const sendInvitation = async () => {
   try {
     // 拆解 lat, lng
     const [latStr, lngStr] = invitation.value.latLng.split(',')
-    const lat = parseFloat(latStr)
-    const lng = parseFloat(lngStr)
+
+    // 🚨 修正：使用 trim() 清除可能存在的空格，確保轉換為數字的準確性
+    const lat = parseFloat(latStr.trim())
+    const lng = parseFloat(lngStr.trim())
 
     await request.post('/api/invites', {
       title: invitation.value.title,
@@ -296,8 +299,8 @@ const sendInvitation = async () => {
     invitation.value.title = ''
     invitation.value.time = ''
   } catch (error: any) {
-    console.error(error)
-    alert('發送失敗：' + (error.response?.data?.detail || '未知錯誤'))
+    console.error('發送邀約失敗:', error)
+    alert('發送失敗：' + (error.response?.data?.detail || error.message || '未知錯誤'))
   } finally {
     isSubmitting.value = false
   }
@@ -311,7 +314,7 @@ const goHome = () => {
 
 onMounted(() => {
   const script = document.createElement('script')
-  // 請確認這裡填入有效的 Key (或維持您原本的字串)
+  // Google Maps API Key
   script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAtF8UQRBtvHLVok_s7h2ItjLs0gaOFrqs&libraries=places&callback=initMap`
   script.async = true
   script.defer = true
