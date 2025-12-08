@@ -1,41 +1,26 @@
 version: '3.8'
 
 services:
-  # ---------------------------------------------
-  # [暫時註解] 資料庫服務
-  # ---------------------------------------------
-  # db:
-  #   image: postgres:15
-  #   container_name: meetro_db
-  #   restart: always
-  #   environment:
-  #     POSTGRES_USER: meetro_user
-  #     POSTGRES_PASSWORD: meetro_password
-  #     POSTGRES_DB: meetro_db
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-
   # 後端服務
   backend:
     container_name: meetro_backend
     build:
-      context: ./backend
+      context: ./backend 
       dockerfile: Dockerfile
     ports:
       - "8001:8000"
     volumes:
-      - ./backend:/app
-    # ---------------------------------------------
-    # [暫時註解] 資料庫連線設定
-    # ---------------------------------------------
-    # environment:
-    #   DATABASE_URL: postgresql+asyncpg://meetro_user:meetro_password@db:5432/meetro_db
-    # depends_on:
-    #   - db
+      # 1. 程式碼熱重載：將本地的 backend/ 目錄映射到容器的 /app/backend/
+      # 🚨 這會將所有程式碼同步到容器內，同時也會將 meetro.db 檔案同步出來
+      - ./backend:/app/backend 
+      
+      # 2. 確保 .db 檔案存在：
+      # 當容器啟動時，如果 ./backend/meetro.db 不存在，Docker 會創建它。
+      # 這通常是足夠的，只要您在啟動前刪除本地錯誤的 meetro.db "資料夾"。
+      
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
-  # 前端服務 (保持不變)
+  # 前端服務
   frontend:
     container_name: meetro_frontend
     build:
@@ -49,6 +34,3 @@ services:
     command: npm run dev -- --host 0.0.0.0 --port 8080
     depends_on:
       - backend
-
-# volumes:
-#   postgres_data:

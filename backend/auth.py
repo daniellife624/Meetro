@@ -73,9 +73,9 @@ def get_current_user(
 
 
 # 只有 admin 可以用的依賴
-ROLE_GUEST = 1
-ROLE_USER = 2
-ROLE_ADMIN = 3
+ROLE_GUEST = "guest"
+ROLE_USER = "user" # 🚨 修正為字串
+ROLE_ADMIN = "admin"
 
 
 def get_admin_user(current_user: User = Depends(get_current_user)) -> User:
