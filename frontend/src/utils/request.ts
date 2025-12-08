@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useRoleStore } from '@/stores/modules/useRole'
 
 const service = axios.create({
-  baseURL: 'http://localhost:8001',
+  baseURL: 'http://localhost:8000',
   timeout: 20000,
 })
 

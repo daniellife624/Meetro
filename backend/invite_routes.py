@@ -4,10 +4,10 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List
 from datetime import datetime
 
-from database import SessionLocal
-from models import Invite, Station, User, Match
-from auth import get_current_user
-import schemas
+from backend.database import SessionLocal
+from backend.models import Invite, Station, User, Match
+from backend.auth import get_current_user
+import backend.schemas
 
 router = APIRouter(prefix="/api/invites", tags=["invites"])
 
@@ -22,9 +22,9 @@ def get_db():
 
 # 1. 建立邀約 (Sender)
 # 這個我們之前在 SenderView 做過了，但可能只是 print log，現在補上後端
-@router.post("", response_model=schemas.InviteOut)  # 修改：使用 schemas.InviteOut
+@router.post("", response_model=backend.schemas.InviteOut)  # 修改：使用 schemas.InviteOut
 def create_invite(
-    invite_in: schemas.InviteCreate,
+    invite_in: backend.schemas.InviteCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -53,7 +53,7 @@ def create_invite(
 
 
 # 2. 查詢某站點的邀約 (Receiver)
-@router.get("", response_model=List[schemas.InviteOut])
+@router.get("", response_model=List[backend.schemas.InviteOut])
 def get_invites(station_key: str = Query(...), db: Session = Depends(get_db)):
     station = db.query(Station).filter(Station.key == station_key.lower()).first()
     if not station:

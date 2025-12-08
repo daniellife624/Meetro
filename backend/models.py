@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from database import Base
+from backend.database import Base
 
 
 # 1. 會員表 (Users)
@@ -22,7 +22,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    hashed_password = Column(String(16), nullable=False)
+    hashed_password = Column(String, nullable=False)
     name = Column(String(20), nullable=False)
     gender = Column(String, nullable=True)
     birthday = Column(String, nullable=True)

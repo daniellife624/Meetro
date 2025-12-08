@@ -1,17 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import engine
-from models import Base
+from backend.database import engine
+from backend.models import Base
 
 # 1. 引入所有的 Router
-from user_routes import router as user_router
-from place_routes import router as place_router
-from weather_map import router as weather_router
-from history_routes import router as history_router
-from ema_routes import router as ema_router
-from invite_routes import router as invite_router
-from success_routes import router as success_router
+from backend.user_routes import router as user_router
+from backend.place_routes import router as place_router
+from backend.weather_map import router as weather_router
+from backend.history_routes import router as history_router
+from backend.ema_routes import router as ema_router
+from backend.invite_routes import router as invite_router
+from backend.success_routes import router as success_router
 
 
 app = FastAPI(
