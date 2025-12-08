@@ -1,6 +1,6 @@
 # backend/init_db.py
-from database import engine, SessionLocal, Base
-from models import Station, Attraction, User
+from backend.database import engine, SessionLocal, Base
+from backend.models import Station, Attraction, User
 
 # 定義初始資料 (松山新店線)
 INITIAL_DATA = {
