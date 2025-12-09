@@ -46,18 +46,18 @@ class Station(Base):
     # latitude = Column(Float, nullable=True)
     # longitude = Column(Float, nullable=True)
 
-    # attractions = relationship("Attraction", back_populates="station")
+    attractions = relationship("Attraction", back_populates="station")
     invites = relationship("Invite", back_populates="station")
     emas = relationship("Ema", back_populates="station")
 
 
 # 3. 景點表
-"""class Attraction(Base):
+class Attraction(Base):
     __tablename__ = "attractions"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     station_id = Column(Integer, ForeignKey("stations.id"))
-    station = relationship("Station", back_populates="attractions")"""
+    station = relationship("Station", back_populates="attractions")
 
 
 # 4. 邀約表
