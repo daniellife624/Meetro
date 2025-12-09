@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from database import SessionLocal
-from auth import get_current_user
-from models import User, Match
-from weather_map import compute_weather_score, compute_place_score
+from backend.database import SessionLocal
+from backend.auth import get_current_user
+from backend.models import User, Match
+from backend.weather_map import compute_weather_score, compute_place_score
 
 router = APIRouter(prefix="/success", tags=["success"])
 

@@ -77,7 +77,7 @@
             :invite="invite"
             type="confirmed"
             @view-details="handleViewDetails(invite)"
-            @feedback="handleFeedback(invite.id)"
+            @feedback="openFeedbackModal(invite.id, invite.is_current_user_sender)"
           />
         </div>
       </div>
@@ -88,27 +88,51 @@
       :invite="selectedInviteForPopup"
       @close="showDetailPopup = false"
     />
+
+    <FeedbackPopup
+      v-if="showFeedbackModal"
+      :match-id="selectedMatchId"
+      @close="showFeedbackModal = false"
+      @submitted="handleFeedbackSubmitted"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import InviteCard, { type InviteHistoryItem } from '@/components/cards/InviteCard.vue'
+import InviteCard, { type InviteHistoryItem } from '@/components/cards/InviteCard.vue' // 🚨 導入修正後的 InviteCard
 import InviteDetailPopup from '@/components/web/PopupBox/InviteDetailPopup.vue'
-import request from '@/utils/request' // 引入 request
+import FeedbackPopup from '@/components/web/PopupBox/FeedbackPopup.vue'
+import request from '@/utils/request'
+
+// 🚨 修正：擴展 InviteHistoryItem 介面 (與後端 MatchItemResponse 匹配)
+interface InviteHistoryItem {
+  id: number
+  partnerName: string
+  partnerGender: string
+  stationName: string
+  location: string
+  status: 'pending' | 'confirmed' | 'rejected' | string
+  inviteDate: string | Date
+  sender_rating: number | null
+  receiver_rating: number | null
+  is_current_user_sender: boolean // 🚨 來自後端
+  googleMapLink?: string
+}
 
 const activeTab = ref(0)
 const showDetailPopup = ref(false)
 const selectedInvite = ref<InviteHistoryItem | null>(null)
-
-// 資料改為空陣列，等待 API 填入
 const allInvites = ref<InviteHistoryItem[]>([])
+
+const showFeedbackModal = ref(false)
+const selectedMatchId = ref<number>(0)
+const currentUserIsSender = ref(false)
 
 // --- API: 獲取資料 ---
 const fetchHistory = async () => {
   try {
     const res = await request.get('/api/matches/history')
-    // 後端回傳的格式應該已經符合 InviteHistoryItem
     allInvites.value = res as any
   } catch (error) {
     console.error('獲取歷史紀錄失敗:', error)
@@ -121,19 +145,43 @@ onMounted(() => {
 
 // --- Computed ---
 const pendingInvites = computed(() => allInvites.value.filter((i) => i.status === 'pending'))
-const confirmedInvites = computed(() => allInvites.value.filter((i) => i.status === 'confirmed'))
+
+// 🚨 修正：過濾出狀態為 confirmed 且當前使用者尚未評分的 Match
+const confirmedInvites = computed(() =>
+  allInvites.value.filter((i) => {
+    if (i.status !== 'confirmed') return false
+
+    if (i.is_current_user_sender) {
+      // Sender 檢查 sender_rating
+      return i.sender_rating === null
+    } else {
+      // Receiver 檢查 receiver_rating
+      return i.receiver_rating === null
+    }
+  }),
+)
 
 const selectedInviteForPopup = computed(() => {
   if (!selectedInvite.value) return {} as any
+
+  const dateObj = new Date(selectedInvite.value.inviteDate)
+  const dateStr = dateObj.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+  const dayMap = ['日', '一', '二', '三', '四', '五', '六']
+  const dayStr = dayMap[dateObj.getDay()]
+
   return {
     id: selectedInvite.value.id,
-    senderName: selectedInvite.value.senderName,
-    title: `與 ${selectedInvite.value.senderName} 的邀約`,
-    date: '2025-11-20', // 因為後端目前沒回傳日期，暫時寫死或之後補上
-    day: '六',
+    senderName: selectedInvite.value.partnerName,
+    title: `與 ${selectedInvite.value.partnerName} 的邀約`,
+    date: dateStr,
+    day: dayStr,
     stationName: selectedInvite.value.stationName,
     location: selectedInvite.value.location,
-    googleMapLink: '#',
+    googleMapLink: selectedInvite.value.googleMapLink || '#',
   }
 })
 
@@ -144,13 +192,19 @@ const handleViewDetails = (invite: InviteHistoryItem) => {
   showDetailPopup.value = true
 }
 
+const openFeedbackModal = (id: number, isSender: boolean) => {
+  selectedMatchId.value = id
+  currentUserIsSender.value = isSender
+  showFeedbackModal.value = true
+}
+
 const handleConfirmAppointment = async (id: number) => {
   const target = allInvites.value.find((i) => i.id === id)
   if (target) {
-    if (confirm(`確定要赴約 ${target.senderName} 的邀約嗎？`)) {
+    if (confirm(`確定要赴約 ${target.partnerName} 的邀約嗎？`)) {
       try {
         await request.patch(`/api/matches/${id}/status`, { status: 'confirmed' })
-        // 更新前端狀態 (不用重刷頁面)
+
         target.status = 'confirmed'
         activeTab.value = 1
       } catch (error) {
@@ -164,7 +218,7 @@ const handleDecline = async (id: number) => {
   if (confirm('確定要婉拒這個邀約嗎？此動作無法復原。')) {
     try {
       await request.patch(`/api/matches/${id}/status`, { status: 'rejected' })
-      // 從列表中移除
+
       allInvites.value = allInvites.value.filter((i) => i.id !== id)
     } catch (error) {
       alert('更新失敗')
@@ -172,12 +226,19 @@ const handleDecline = async (id: number) => {
   }
 }
 
-const handleFeedback = (id: number) => {
-  alert('即將開啟滿意度填寫表單 (待開發功能)')
-}
-
-const openChatRoom = () => {
-  console.log('Open Chat Room')
+// 處理滿意度提交後的事件
+const handleFeedbackSubmitted = ({ matchId, rating }: { matchId: number; rating: number }) => {
+  const target = allInvites.value.find((i) => i.id === matchId)
+  if (target) {
+    // 根據提交時的角色來更新正確的評分欄位
+    if (target.is_current_user_sender) {
+      target.sender_rating = rating
+    } else {
+      target.receiver_rating = rating
+    }
+  }
+  // 重新載入列表，讓已評分的項目從列表中消失
+  fetchHistory()
 }
 </script>
 

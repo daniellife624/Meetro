@@ -9,8 +9,8 @@ from fastapi.responses import JSONResponse
 
 # 引入 DB 相關模組
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import Station
+from backend.database import SessionLocal
+from backend.models import Station
 
 # 建立 Router
 router = APIRouter(prefix="/api", tags=["weather_map"])

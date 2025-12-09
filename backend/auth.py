@@ -8,8 +8,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
-from database import SessionLocal
-from models import User
+from backend.database import SessionLocal
+from backend.models import User
 
 # ==== JWT 相關設定（正式環境要用環境變數）====
 SECRET_KEY = "super-secret-key-change-me"
@@ -71,11 +71,9 @@ def get_current_user(
 
     return user
 
-
-# 只有 admin 可以用的依賴
-ROLE_GUEST = 1
-ROLE_USER = 2
-ROLE_ADMIN = 3
+ROLE_GUEST = "guest"
+ROLE_USER = "user"
+ROLE_ADMIN = "admin"
 
 
 def get_admin_user(current_user: User = Depends(get_current_user)) -> User:

@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from database import Base
+from backend.database import Base
 
 
 # 1. 會員表 (Users)
@@ -22,12 +22,12 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    hashed_password = Column(String(16), nullable=False)
+    hashed_password = Column(String, nullable=False)
     name = Column(String(20), nullable=False)
     gender = Column(String, nullable=True)
     birthday = Column(String, nullable=True)
 
-    role = Column(Integer, default=2, nullable=False)
+    role = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # 關聯
@@ -72,12 +72,13 @@ class Invite(Base):
     location_name = Column(String(100), nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    # status = Column(String, default="open")
+    status = Column(String(20), default="open", nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     sender = relationship("User", back_populates="invites_sent")
     station = relationship("Station", back_populates="invites")
     matches = relationship("Match", back_populates="invite")
+    matches_list = relationship("Match", back_populates="invite")
 
 
 # 5. 配對表
@@ -92,11 +93,18 @@ class Match(Base):
         CheckConstraint("satisfaction_score <= 100", name="satisfaction_score_max_100"),
     )
     # feedback = Column(Text, nullable=True)
+    # 滿意度評分欄位 (0-100)
+    sender_rating = Column(Integer, nullable=True)  # 發送方的評分
+    receiver_rating = Column(Integer, nullable=True)  # 接受方的評分
+    # 評分狀態追蹤
+    feedback_status = Column(
+        String(20), default="pending", nullable=False
+    )  # 'pending', 'sender_done', 'receiver_done', 'both_done'
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    invite = relationship("Invite", back_populates="matches")
-    receiver = relationship("User", back_populates="matches_received")
+    invite = relationship("Invite", back_populates="matches_list")
+    receiver = relationship("User", foreign_keys=[receiver_id])
 
 
 # 6. 繪馬表
