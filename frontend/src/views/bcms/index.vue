@@ -80,31 +80,61 @@
 </template>
 
 <script setup lang="ts">
-// Script 內容完全不用修改
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import VariableCard from '@/components/bcms/VariableCard.vue'
 import AddVariableCard from '@/components/bcms/AddVariableCard.vue'
+import request from '@/utils/request'
 
 interface Variable {
   id: number
   name: string
   weight: number
-  rule: string
+  rule: string // 對應 SystemVariable.rule_desc
 }
 
-const variables = ref<Variable[]>([
-  { id: 1, name: '景點', weight: 30, rule: '根據周邊景點數量與熱門程度進行加權計算...' },
-  { id: 2, name: '天氣', weight: 30, rule: '若當日降雨機率過高，戶外站點權重降低...' },
-  { id: 3, name: '滿意度', weight: 40, rule: '根據歷史使用者的回饋評分進行動態調整...' },
-])
+// 變數初始化為空，等待 API 載入
+const variables = ref<Variable[]>([])
 
+// --- API 載入 ---
+const fetchConfig = async () => {
+  try {
+    // 呼叫 GET /api/bcms/config
+    const res: any[] = await request.get('/api/bcms/config')
+
+    // 後端返回的 rule_desc 在前端命名為 rule
+    variables.value = res.map((v) => ({
+      id: v.id,
+      name: v.name,
+      weight: v.weight,
+      rule: v.rule,
+    }))
+
+    console.log('BCMS 配置載入成功:', variables.value)
+  } catch (error) {
+    console.error('BCMS 配置載入失敗:', error)
+    // 如果載入失敗，給予一個預設值，確保介面不崩潰
+    variables.value = [
+      { id: 1, name: '歷史滿意度', weight: 50, rule: '無法載入後端數據，使用預設值。' },
+      { id: 2, name: '天氣影響', weight: 30, rule: '無法載入後端數據，使用預設值。' },
+      { id: 3, name: '地點熱門度', weight: 20, rule: '無法載入後端數據，使用預設值。' },
+    ]
+    alert('無法載入 BCMS 參數，請檢查後端服務和初始化數據。')
+  }
+}
+
+onMounted(() => {
+  fetchConfig()
+})
+
+// --- Computed ---
 const parameterListString = computed(() => variables.value.map((v) => v.name).join(' ｜ '))
 const totalWeight = computed(() => variables.value.reduce((sum, item) => sum + item.weight, 0))
 const isOverLimit = computed(() => totalWeight.value > 100)
 
+// --- Actions ---
+
 const addNewVariable = () => {
-  const newId = variables.value.length + 1
-  const name = prompt('請輸入新參數名稱：', `新參數${newId}`)
+  const name = prompt('請輸入新參數名稱：')
   if (name) {
     variables.value.push({
       id: Date.now(),
@@ -119,13 +149,28 @@ const removeVariable = (index: number) => {
   if (confirm('確定要移除這個參數嗎？')) variables.value.splice(index, 1)
 }
 
-const handleSave = () => {
+const handleSave = async () => {
   if (totalWeight.value !== 100) {
     alert(`目前總權重為 ${totalWeight.value}%，必須剛好等於 100% 才能儲存！`)
     return
   }
-  console.log('儲存設定:', variables.value)
-  alert('參數設定已更新！')
+
+  const dataToSend = variables.value.map((v) => ({
+    name: v.name,
+    weight: v.weight,
+    rule: v.rule,
+  }))
+
+  try {
+    // 呼叫 POST /api/bcms/config/save
+    await request.post('/api/bcms/config/save', dataToSend)
+    alert('參數設定已成功更新並保存！')
+    // 保存成功後重新載入，以確保數據 ID 正確
+    await fetchConfig()
+  } catch (error: any) {
+    console.error('保存 BCMS 配置失敗:', error)
+    alert(`保存失敗：${error.detail || error.message || '未知錯誤'}`)
+  }
 }
 </script>
 

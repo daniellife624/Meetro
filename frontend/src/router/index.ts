@@ -24,7 +24,6 @@ const NotFound = () => import('@/views/404.vue')
 export const webRouteName = 'web'
 
 // --- Route Definitions ---
-
 export const publicWebRoutes: RouteRecordRaw[] = [
   {
     path: '',
@@ -142,39 +141,84 @@ const router = createRouter({
 
 // --- Navigation Guards ---
 
-router.beforeEach((to, from, next) => {
+// 🚨 輔助函式: 超時機制 (保持不變)
+const timeoutPromise = (ms: number, promise: Promise<any>) => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('API Timeout: Role fetching exceeded 5 seconds.'))
+    }, ms)
+
+    promise.then(
+      (res) => {
+        clearTimeout(timer)
+        resolve(res)
+      },
+      (err) => {
+        clearTimeout(timer)
+        reject(err)
+      },
+    )
+  })
+}
+
+router.beforeEach(async (to, from, next) => {
   const loadingStore = useLoadingStore()
   const roleStore = useRoleStore()
 
+  // 1. 確保載入狀態
   loadingStore.setLoading(true, '載入中...')
 
-  const requiresAuth = to.meta.requiresAuth
-  const isLoggedIn = !roleStore.isGuest
+  // 🚨 簡化：不再執行 await fetchUserRole()，相信 Local Storage 中的狀態是可靠的
+  // 避免異步阻塞問題。
 
-  const isAuthPage = ['WebLogin', 'WebRegister', 'BCMSLogin'].includes(to.name as string)
+  const isLoggedIn = roleStore.isAuthenticated
+  const isAdmin = roleStore.isAdmin
 
-  if (requiresAuth && !isLoggedIn) {
-    // 1. 需登入但未登入
-    console.warn('[Router] Access denied.', to.fullPath)
-    if (to.path.startsWith('/bcms')) {
-      next({ name: 'BCMSLogin', query: { redirect: to.fullPath } })
-    } else {
-      next({ name: 'WebLogin', query: { redirect: to.fullPath } })
+  const isLoginPath = to.name === 'WebLogin' // 登入頁名稱
+
+  // ----------------------------------------------------
+  // 核心邏輯 (只有四個判斷)
+  // ----------------------------------------------------
+
+  if (to.name === 'BCMSDashboard') {
+    // 1. 導航到 /web/bcms (Dashboard)
+    if (!isAdmin) {
+      // 不是 Admin，無權限，導回首頁
+      console.warn('[Router] BCMS Access Denied. Redirecting to Home.')
+      return next({ name: 'home' })
     }
-    loadingStore.setLoading(false)
-  } else if (isAuthPage && isLoggedIn) {
-    // 2. 已登入卻想去登入頁 (防呆)
-    console.warn('[Router] Already logged in. Redirecting.')
-    if (roleStore.isAdmin) {
-      next({ name: 'BCMSDashboard' })
-    } else {
-      next({ name: 'home' })
-    }
-    loadingStore.setLoading(false)
-  } else {
-    // 3. 通行
-    next()
+    // 是 Admin，允許通行
+    return next()
   }
+
+  if (isLoginPath) {
+    // 2. 導航到 /web/login 頁面
+    if (isLoggedIn) {
+      // 已登入者 (Admin 或 User) 訪問登入頁
+      console.warn('[Router] Already Logged In. Redirecting.')
+
+      if (isAdmin) {
+        // 如果是 Admin，導向 BCMS
+        return next({ name: 'BCMSDashboard' })
+      } else {
+        // 如果是普通 User，導向 Home
+        return next({ name: 'home' })
+      }
+    }
+    // 未登入，允許進入登入頁
+    return next()
+  }
+
+  // 3. 所有其他頁面 (Home, Profile, History, etc.)
+
+  // 確保所有 requiresAuth 的頁面能被保護 (例如 Profile/History)
+  if (to.meta.requiresAuth && !isLoggedIn) {
+    console.warn('[Router] Protected Page Access Denied. Redirect to WebLogin.')
+    return next({ name: 'WebLogin', query: { redirect: to.fullPath } })
+  }
+
+  // 4. 允許通行
+  next()
 })
 
 router.afterEach((to) => {
@@ -182,6 +226,7 @@ router.afterEach((to) => {
   setTimeout(() => {
     loadingStore.setLoading(false)
   }, 300)
+
   const defaultTitle = to.path.startsWith('/bcms') ? 'Meetro 後台管理' : 'Meetro - 相遇地圖'
   document.title = (to.meta.title ? to.meta.title + ' | ' : '') + defaultTitle
 })

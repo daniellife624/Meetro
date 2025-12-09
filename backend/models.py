@@ -32,7 +32,16 @@ class User(Base):
 
     # 關聯
     invites_sent = relationship("Invite", back_populates="sender")
-    matches_received = relationship("Match", back_populates="receiver")
+    matches_received = relationship(
+        "Match",
+        back_populates="receiver",
+        foreign_keys="[Match.receiver_id]",  # 使用 Match 中的 receiver_id 指向 User.id
+    )
+    matches_sent = relationship(
+        "Match",
+        back_populates="sender",
+        foreign_keys="[Match.sender_id]",  # 使用 Match 中的 sender_id 指向 User.id
+    )
     emas = relationship("Ema", back_populates="user")
 
 
@@ -86,6 +95,7 @@ class Match(Base):
     __tablename__ = "matches"
     id = Column(Integer, primary_key=True, index=True)
     invite_id = Column(Integer, ForeignKey("invites.id"))
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     receiver_id = Column(Integer, ForeignKey("users.id"))
     status = Column(Integer, default=1, nullable=False)  # pending, confirmed, rejected
     satisfaction_score = Column(Integer, nullable=True)
@@ -105,6 +115,7 @@ class Match(Base):
 
     invite = relationship("Invite", back_populates="matches")
     receiver = relationship("User", foreign_keys=[receiver_id])
+    sender = relationship("User", foreign_keys=[sender_id])
 
 
 # 6. 繪馬表

@@ -162,6 +162,7 @@ def accept_invite(
 
     new_match = Match(
         invite_id=invite_id,
+        sender_id=invite.sender_id,
         receiver_id=current_user.id,
         status="pending",
         created_at=datetime.now(),

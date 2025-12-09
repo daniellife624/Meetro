@@ -2,7 +2,14 @@
   <header class="w-full h-16 sm:h-20 bg-[#008659] shadow-md font-sans z-50 relative">
     <div class="w-full h-full px-4 md:px-8 flex items-center justify-between text-white">
       <div class="flex items-center cursor-pointer" @click="goHome">
-        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-sm mr-3 flex-shrink-0"></div>
+        <div class="w-8 h-8 sm:w-10 sm:h-10 mr-3 flex-shrink-0">
+          <SvgItem
+            name="meetro"
+            size="full"
+            class="text-[#008659] p-0.5 bg-white rounded-sm"
+            filled
+          />
+        </div>
 
         <h1 class="text-lg sm:text-xl font-bold tracking-wide truncate">
           <span v-if="currentRole === 'admin'">Meetro: 相遇地圖 ｜ 後臺管理端</span>

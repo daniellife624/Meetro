@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, watchEffect } from 'vue'
+import { ref, computed, defineProps, watch, onMounted } from 'vue'
 import MeetroIntroCard from '@/components/cards/MeetroIntroCard.vue'
 import InviteItem from '@/components/items/InviteItem.vue'
 import InviteDetailPopup from '@/components/web/PopupBox/InviteDetailPopup.vue'
@@ -112,6 +112,7 @@ interface Invite {
   hasChat: boolean
   stationName: string
   googleMapLink: string
+  senderSuccessRate: number
 }
 
 const invites = ref<Invite[]>([])
@@ -148,6 +149,7 @@ const loadInvites = async (key: string) => {
           hasChat: false,
           stationName: stationName.value,
           googleMapLink: `http://googleusercontent.com/maps.google.com/?q=${item.latitude},${item.longitude}`,
+          senderSuccessRate: item.sender_success_rate || 0,
         }
       })
     }
@@ -158,11 +160,21 @@ const loadInvites = async (key: string) => {
   }
 }
 
-watchEffect(() => {
-  if (props.stationKey) {
-    loadInvites(props.stationKey)
-  }
-})
+// watchEffect(() => {
+//   if (props.stationKey) {
+//     loadInvites(props.stationKey)
+//   }
+// })
+
+watch(
+  () => props.stationKey,
+  (newKey) => {
+    if (newKey) {
+      loadInvites(newKey)
+    }
+  },
+  { immediate: true }, // 🚨 關鍵：在組件創建時立即執行一次
+)
 
 const handleViewDetails = (id: number) => {
   const target = invites.value.find((i) => i.id === id)

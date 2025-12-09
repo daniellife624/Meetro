@@ -1,15 +1,16 @@
 import axios from 'axios'
-import { useRoleStore } from '@/stores/modules/useRole'
+// import { useRoleStore } from '@/stores/modules/useRole'
 
 const service = axios.create({
   baseURL: 'http://localhost:8001',
   timeout: 20000,
 })
 
+// const getRoleStore = () => useRoleStore()
+
 service.interceptors.request.use(
   (config) => {
-    const roleStore = useRoleStore()
-    const token = roleStore.token // 從 Pinia 取得 Token
+    const token = localStorage.getItem('meetro_token')
 
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
@@ -29,11 +30,11 @@ service.interceptors.response.use(
   (error) => {
     console.error('API Error:', error)
 
-    if (error.response && error.response.status === 401) {
-      const roleStore = useRoleStore()
-      roleStore.logout()
-      window.location.href = '/web/login' // 強制導向
-    }
+    // if (error.response && error.response.status === 401) {
+    //   const roleStore = getRoleStore()
+    //   roleStore.logout()
+    //   window.location.href = '/web/login' // 強制導向
+    // }
 
     return Promise.reject(error)
   },

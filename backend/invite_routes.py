@@ -8,6 +8,7 @@ from backend.database import SessionLocal
 from backend.models import Invite, Station, User, Match
 from backend.auth import get_current_user
 import backend.schemas
+from backend.services.success_rate_service import calculate_simulated_success_rate
 
 router = APIRouter(prefix="/api/invites", tags=["invites"])
 
@@ -79,7 +80,7 @@ def create_invite(
 
 
 # 查詢某站點的邀約 (Receiver)
-@router.get("", response_model=List[backend.schemas.InviteOut])
+@router.get("", response_model=List[backend.schemas.InviteOutWithSuccessRate])
 def get_invites(station_key: str = Query(...), db: Session = Depends(get_db)):
     station = db.query(Station).filter(Station.key == station_key.lower()).first()
     if not station:
@@ -89,10 +90,32 @@ def get_invites(station_key: str = Query(...), db: Session = Depends(get_db)):
     # 預載 sender 資訊
     invites = (
         db.query(Invite)
-        .options(joinedload(Invite.sender), joinedload(Invite.station))
+        .options(joinedload(Invite.sender))
         .filter(Invite.station_id == station.id, Invite.status == "open")
         .order_by(Invite.meet_time.asc())
         .all()
     )
 
-    return invites
+    results = []
+    for invite in invites:
+        # 1. 計算發送方的模擬成功率
+        success_rate = calculate_simulated_success_rate(db, invite.sender_id)
+
+        # 2. 構建輸出數據字典，包含計算結果
+        #    我們手動構建字典，然後讓 FastAPI 在驗證時將 ORM 物件 (invite, invite.sender) 轉換為 Pydantic
+        invite_data = {
+            "id": invite.id,
+            "title": invite.title,
+            "meet_time": invite.meet_time,
+            "location_name": invite.location_name,
+            "latitude": invite.latitude,
+            "longitude": invite.longitude,
+            "sender_success_rate": success_rate,  # 🚨 注入計算結果
+            # 傳遞 ORM 物件給 Pydantic，它會根據 from_attributes=True 自動轉換
+            "sender": invite.sender,
+        }
+
+        results.append(invite_data)
+
+    # 🚨 返回構建好的字典列表，讓 FastAPI 根據 response_model 進行最終驗證和轉換。
+    return results

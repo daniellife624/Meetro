@@ -83,3 +83,30 @@ class InviteOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# 發送方的基本資訊 (與 UserBasic 相同，但確保結構清晰)
+class SenderInfo(BaseModel):
+    id: int
+    name: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+# 邀約列表的單項輸出 (包含發送方成功率)
+class InviteOutWithSuccessRate(BaseModel):
+    id: int
+    title: str
+    meet_time: datetime
+    location_name: str
+    latitude: float
+    longitude: float
+
+    # 🚨 關鍵新增：發送方的基本資訊
+    sender: SenderInfo
+    # 🚨 關鍵新增：發送方的模擬成功率
+    sender_success_rate: float
+
+    class Config:
+        from_attributes = True

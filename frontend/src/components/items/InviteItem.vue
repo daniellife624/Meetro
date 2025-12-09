@@ -6,7 +6,12 @@
       <div class="text-lg font-bold text-gray-800 tracking-wide">
         發送對象 : {{ invite.senderName }}
       </div>
-
+      <div v-if="invite.senderSuccessRate !== undefined">
+        <span class="text-lg font-bold text-green-700 mr-1">此用戶目前邀約成功機率：</span>
+        <span class="text-lg font-extrabold text-[#008659]"
+          >{{ invite.senderSuccessRate.toFixed(1) }}%</span
+        >
+      </div>
       <div class="text-lg font-bold text-gray-800 tracking-wide">
         邀約日期 : {{ invite.date }} ({{ invite.day }})
       </div>
@@ -53,6 +58,7 @@ interface Invite {
   day: string
   location: string
   hasChat: boolean
+  senderSuccessRate?: number
 }
 
 interface Props {

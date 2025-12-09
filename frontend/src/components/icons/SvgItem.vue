@@ -139,6 +139,14 @@
       <path d="m15 13.5-1 1"></path>
       <path d="m12 11.5 0 1"></path>
     </template>
+    <template v-if="name === 'meetro'">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+      <line x1="12" y1="15" x2="12" y2="18" />
+      <line x1="12" y1="18" x2="12" y2="21" />
+      <line x1="4" y1="21" x2="20" y2="21" />
+      <path d="M16 17a2 2 0 0 0 2 2h2v-2h-2a2 2 0 0 0-2 2z" />
+      <path d="M4 17a2 2 0 0 1-2 2h2v-2H4a2 2 0 0 1-2 2z" />
+    </template>
   </svg>
 </template>
 
@@ -169,6 +177,7 @@ type IconName =
   | 'smile'
   | 'target'
   | 'party'
+  | 'meetro'
 
 const props = defineProps<{
   name: IconName
