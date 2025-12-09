@@ -6,9 +6,7 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm transition-opacity duration-300"
     >
       <div class="flex flex-col items-center p-6 bg-white rounded-xl shadow-2xl">
-        <!-- Lottie Placeholder for Animation -->
         <div class="w-16 h-16 mb-4">
-          <!-- 由於我們在 main.ts 中移除了 Lottie，這裡先用 SVG 佔位 -->
           <svg
             class="animate-spin text-indigo-600"
             xmlns="http://www.w3.org/2000/svg"

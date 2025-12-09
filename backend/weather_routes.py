@@ -135,7 +135,7 @@ def get_station_info(
 
     print(f"[API] 查詢站點: {station_key}")
 
-    # 1. 查詢資料庫取得景點
+    # 查詢資料庫取得景點
     # 先找站點
     station = db.query(Station).filter(Station.key == station_key.lower()).first()
 
@@ -146,7 +146,7 @@ def get_station_info(
     else:
         attractions_list = ["(資料庫中無此站點資料)"]
 
-    # 2. 取得天氣 (邏輯不變)
+    # 2. 取得天氣
     city = STATION_LOCATION_MAP.get(station_key.lower(), "臺北市")
     cwa_data = fetch_cwa_wx(city)
     weather_str = parse_weather_info(cwa_data)
@@ -162,7 +162,7 @@ def get_station_info(
 def get_place_info(lat: float = Query(...), lng: float = Query(...)):
     """SenderView：點擊地圖取得地點資訊"""
 
-    # 1. Reverse Geocoding (經緯度 -> Place ID)
+    # Reverse Geocoding (經緯度 -> Place ID)
     geo_params = {"latlng": f"{lat},{lng}", "key": GOOGLE_API_KEY, "language": "zh-TW"}
     try:
         geo_resp = requests.get(GEOCODE_URL, params=geo_params, timeout=5).json()
@@ -174,7 +174,7 @@ def get_place_info(lat: float = Query(...), lng: float = Query(...)):
         place_id = base_info.get("place_id")
         address = base_info.get("formatted_address")
 
-        # 2. Place Details (Place ID -> 詳細名稱/評分)
+        # Place Details (Place ID -> 詳細名稱/評分)
         detail_params = {
             "place_id": place_id,
             "key": GOOGLE_API_KEY,

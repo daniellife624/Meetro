@@ -12,27 +12,22 @@ from backend.models import Match, Invite, User, Station
 from backend.auth import get_current_user
 
 
-
 router = APIRouter(prefix="/api/matches", tags=["matches"])
 
+
 # --- Pydantic Schemas ---
-
-
-# 🚨 新增/修正：歷史紀錄回傳結構
 class MatchItemResponse(BaseModel):
     id: int
-    partnerName: str  # 👈 顯示對方的名字
-    partnerGender: Optional[str] = None  # 👈 顯示對方的性別
+    partnerName: str  # 顯示對方的名字
+    partnerGender: Optional[str] = None  # 顯示對方的性別
     stationName: str
     location: str
     status: str
     inviteDate: datetime
-
-    # 🚨 新增：評分欄位
+    # 評分欄位
     sender_rating: Optional[int] = None
     receiver_rating: Optional[int] = None
-
-    # 🚨 新增：角色標誌
+    # 角色標誌
     is_current_user_sender: bool  # 判斷當前使用者是發送方還是接受方
 
     class Config:
@@ -43,7 +38,6 @@ class UpdateStatusRequest(BaseModel):
     status: str  # 期望值: "confirmed", "rejected", ...
 
 
-# 🚨 新增：評分請求 Pydantic
 class FeedbackRequest(BaseModel):
     rating: int  # 接收 0-100 的數字
 
@@ -64,7 +58,6 @@ def get_db():
 def get_my_history(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
-    # 🚨 修正：找出所有「我是接受者」或「我是發送者」的配對
     matches = (
         db.query(Match)
         .options(
@@ -122,7 +115,7 @@ def update_match_status(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 1. 查詢該配對，並確認權限 (只能修改自己作為 Receiver 的 Match 狀態)
+    # 查詢該配對，並確認權限 (只能修改自己作為 Receiver 的 Match 狀態)
     match_obj = (
         db.query(Match)
         .filter(Match.id == match_id, Match.receiver_id == current_user.id)
@@ -132,11 +125,11 @@ def update_match_status(
     if not match_obj:
         raise HTTPException(status_code=404, detail="找不到此邀約")
 
-    # 🚨 檢查狀態有效性
+    # 檢查狀態有效性
     if request.status not in ["confirmed", "rejected"]:
         raise HTTPException(status_code=400, detail="無效的狀態值")
 
-    # 2. 更新狀態
+    # 更新狀態
     match_obj.status = request.status
     db.commit()
     db.refresh(match_obj)
@@ -150,10 +143,6 @@ def accept_invite(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # ... (保持原有的 accept_invite 邏輯，確保寫入 status="pending")
-    # ... (這裡不需要動)
-
-    # 為了完整性，這裡提供完整的 accept_invite 邏輯
     invite = (
         db.query(Invite).filter(Invite.id == invite_id, Invite.status == "open").first()
     )
@@ -188,7 +177,7 @@ def accept_invite(
     }
 
 
-# 🚨 新增：滿意度回饋 API
+# 滿意度回饋 API
 @router.post("/{match_id}/feedback")
 def submit_feedback(
     match_id: int,
@@ -196,11 +185,11 @@ def submit_feedback(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 1. 檢查評分數值是否合法
+    # 檢查評分數值是否合法
     if not 0 <= request.rating <= 100:
         raise HTTPException(status_code=400, detail="滿意度評分必須介於 0 到 100 之間")
 
-    # 2. 查詢 Match 紀錄
+    # 查詢 Match 紀錄
     match_obj = (
         db.query(Match)
         .options(
@@ -213,14 +202,14 @@ def submit_feedback(
     if match_obj.status != "confirmed":
         raise HTTPException(status_code=400, detail="只能對已確認赴約的紀錄進行評分")
 
-    # 3. 判斷提交者身份
+    # 判斷提交者身份
     is_sender = match_obj.invite.sender_id == current_user.id
     is_receiver = match_obj.receiver_id == current_user.id
 
     if not is_sender and not is_receiver:
         raise HTTPException(status_code=403, detail="您不是此配對的參與者")
 
-    # 4. 寫入評分
+    # 寫入評分
     if is_sender:
         if match_obj.sender_rating is not None:
             raise HTTPException(status_code=400, detail="發送方已提交過評分")
@@ -243,7 +232,7 @@ def submit_feedback(
         else:
             match_obj.feedback_status = "receiver_done"
 
-    # 🚨 處理：如果 status 不是 confirmed，提醒使用者
+    # 如果 status 不是 confirmed，提醒使用者
     if match_obj.status != "confirmed":
         print(
             f"DEBUG: Feedback submitted for Match {match_id} which is still {match_obj.status}"
@@ -253,8 +242,11 @@ def submit_feedback(
         db.commit()
     except Exception as e:
         db.rollback()
-        # 🚨 捕獲 DB 錯誤，確保不返回前端「未知錯誤」
         print(f"DB COMMIT ERROR: {e}")
         raise HTTPException(status_code=500, detail="資料庫寫入滿意度失敗")
 
-    return {"message": "滿意度提交成功", "feedback_status": match_obj.feedback_status}
+    return {
+        "status": "success",
+        "message": "滿意度提交成功",
+        "feedback_status": match_obj.feedback_status,
+    }

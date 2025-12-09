@@ -26,7 +26,6 @@
         class="expand-menu absolute top-full right-0 mt-0.5 bg-white shadow-2xl rounded-lg z-50 overflow-hidden min-w-[180px] border border-gray-200"
         v-show="isHovering"
       >
-        <!-- 下拉菜單的內容 (使用 <slot name="menu"></slot>) -->
         <slot name="menu"></slot>
       </div>
     </Transition>

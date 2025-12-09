@@ -76,7 +76,7 @@ const roleStore = useRoleStore()
 const stationMap: Record<string, string> = {
   songshan: '松山',
   gongguan: '公館',
-  xindian: '新店', // ...可補全
+  xindian: '新店',
 }
 const stationName = computed(() => stationMap[props.stationKey?.toLowerCase()] || props.stationKey)
 
@@ -87,7 +87,7 @@ const isLoading = ref(false)
 // 使用空陣列，等待 API 載入
 const emaList = ref<EmaItem[]>([])
 
-// --- API: 讀取繪馬 ---
+// 讀取繪馬
 const fetchEmas = async () => {
   isLoading.value = true
   try {
@@ -110,8 +110,6 @@ watch(
   { immediate: true },
 ) // immediate: true 表示組件掛載時也會執行一次
 
-// --- 操作邏輯 ---
-
 const openCreateModal = () => {
   if (roleStore.isGuest) {
     showLoginHint.value = true
@@ -125,7 +123,7 @@ const handleGoToLogin = () => {
   router.push({ name: 'WebLogin' })
 }
 
-// --- API: 新增繪馬 ---
+// 新增繪馬
 const submitEma = async (data: { location: string; content: string; photoUrl: string }) => {
   try {
     // 呼叫 POST /api/emas

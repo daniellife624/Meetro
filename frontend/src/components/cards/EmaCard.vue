@@ -67,7 +67,6 @@ import SvgItem from '@/components/icons/SvgItem.vue'
 
 export interface EmaItem {
   id: number
-  // 確保這與父組件傳入的資料結構一致 (不需要 station 屬性在這裡宣告，除非卡片內部邏輯需要用到)
   userName: string
   location: string
   content: string

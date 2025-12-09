@@ -19,7 +19,7 @@ export const useLoadingStore = defineStore('loading', () => {
     }
   }
 
-  // --- Return (必須回傳，外部才拿得到) ---
+  // --- Return ---
   return {
     isLoading,
     loadingText,

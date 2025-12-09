@@ -24,10 +24,3 @@ export const BCMSRoute: RouteRecordRaw = {
     },
   ],
 }
-
-// 為了讓編譯成功，我們需要確保 BCMSLayout.vue 和 Dashboard.vue 檔案存在。
-// 如果它們不存在，請先創建最小化的佔位符檔案。
-
-// 為了避免編譯錯誤，我們現在也創建 BCMSLayout.vue 和 Dashboard.vue 的最小佔位符。
-// 注意：由於您在 `router/index.ts` 中已經有 `/bcms/login`，
-// 這個 BCMSLayout.vue 檔案是所有 BCMS 內部頁面所需的父組件。

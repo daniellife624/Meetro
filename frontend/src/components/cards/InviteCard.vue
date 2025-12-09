@@ -49,7 +49,7 @@
             @click="$emit('feedback')"
             class="flex-1 w-full px-2 py-2 rounded-full bg-[#198754] text-white text-sm font-bold hover:bg-[#146c43] transition-colors flex justify-center items-center"
           >
-            填寫滿意度
+            填寫滿意度 模擬下一次邀約成功率
           </button>
         </template>
         <template v-else>
@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-// 🚨 修正：介面必須與後端 MatchItemResponse 和 history.vue 傳入的數據匹配
+// 介面必須與後端 MatchItemResponse 和 history.vue 傳入的數據匹配
 export interface InviteHistoryItem {
   id: number
   partnerName: string

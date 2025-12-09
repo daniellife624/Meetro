@@ -30,37 +30,67 @@ import PopupBoxLayout from '@/components/web/PopupBox/PopupBoxLayout.vue'
 import ChangePasswordPopup from '@/components/web/PopupBox/ChangePasswordPopup.vue'
 import request from '@/utils/request'
 
+interface UserProfile {
+  name: string
+  birthday: string
+  gender: string
+  email: string
+  simulationCount: number
+  successRate: number
+  weatherScore?: number
+  placeScore?: number
+  historyScore?: number
+}
 // 初始化為空物件，等待 API 填入
 const userData = ref<UserProfile>({
   name: '',
   birthday: '',
   gender: '',
   email: '',
-  simulationCount: 0, // 目前後端尚未實作此欄位，先給預設值
-  successRate: 0, // 目前後端尚未實作此欄位，先給預設值
+  simulationCount: 0,
+  successRate: 0,
 })
 
 const showPasswordPopup = ref(false)
 
 const fetchUserProfile = async () => {
   try {
-    // 呼叫 /auth/me (request.ts 的攔截器會自動帶上 Token)
-    const res: any = await request.get('/auth/me')
+    const userRes: any = await request.get('/auth/me')
+    const stationKey = 'gongguan'
+    const testLat = 25.013
+    const testLng = 121.537
 
-    console.log('使用者資料:', res)
+    const rateRes: any = await request.get('/api/success/estimate', {
+      params: {
+        station_key: stationKey,
+        lat: testLat,
+        lng: testLng,
+      },
+    })
+
+    console.log('成功率估算結果:', rateRes)
+
+    // 計算模擬次數
+    let count = 0
+    if (rateRes.history_label && rateRes.history_label.startsWith('有 ')) {
+      const match = rateRes.history_label.match(/有 (\d+) 筆紀錄/)
+      if (match) {
+        count = parseInt(match[1], 10)
+      }
+    }
 
     // 將後端資料映射到前端介面
     userData.value = {
-      name: res.name, // 對應 UserOut 的 name
-      email: res.email, // 對應 UserOut 的 email
-      gender: res.gender || '未設定',
-      birthday: res.birthday || '未設定',
-      simulationCount: 5, // 暫時寫死 (模擬數據)
-      successRate: 85, // 暫時寫死 (模擬數據)
+      name: userRes.name, // 對應 UserOut 的 name
+      email: userRes.email, // 對應 UserOut 的 email
+      gender: userRes.gender || '未設定',
+      birthday: userRes.birthday || '未設定',
+      simulationCount: count,
+      successRate: rateRes.success_rate || 0,
     }
   } catch (error) {
-    console.error('獲取個人資料失敗:', error)
-    alert('無法取得使用者資料，請重新登入')
+    console.error('獲取個人資料或成功率失敗:', error)
+    alert('無法取得使用者資料或模擬成功率，請檢查後端服務')
   }
 }
 

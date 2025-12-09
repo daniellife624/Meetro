@@ -2,7 +2,6 @@ import router from '@/router'
 import beforeLoginRoutes from '@/router/modules/BeforeLogin'
 import userRoutes from '@/router/modules/user'
 import useBCMSStore from './bcms'
-// 由於 useCookies 暫時使用 Stub 且不再依賴外部庫，這裡的匯入路徑是正確的
 import useCookies from '@/composables/useCookies'
 
 import { UserAuth } from '../api/types/auth'
@@ -18,7 +17,7 @@ import { Router } from 'vue-router'
 export interface State {
   isLogin: boolean
   isInit: boolean
-  userAuth: UserAuth | null //使否正在使用後台管理系統
+  userAuth: UserAuth | null // 使否正在使用後台管理系統
   usingBCMS: boolean
 }
 export const useStore = defineStore('main', {
@@ -33,10 +32,9 @@ export const useStore = defineStore('main', {
      * 驗證是否登入
      */
     auth() {
-      // *** 暫時移除 Cookie 讀取邏輯，確保應用程式啟動 ***
       this.updateUserAuth({
-        token: '', // 原為 this.$cookies.token.get(), 暫時給空字串
-        roleId: 0, // 原為 this.$cookies.roleId.get(), 暫時給 0
+        token: '',
+        roleId: 0,
       })
       return this.initRoute()
     },
@@ -76,15 +74,14 @@ export const useStore = defineStore('main', {
       if (!token || !roleId) {
         this.isLogin = false
         this.userAuth = null
-        this.isLogin = false // cookies.removeAll() // <-- 暫時註解掉 Cookie 操作
+        this.isLogin = false
         return
       }
 
       this.userAuth = {
         token,
         roleId,
-      } // cookies.token.set(token, remember) // <-- 暫時註解掉 Cookie 操作
-      // cookies.roleId.set(roleId, remember) // <-- 暫時註解掉 Cookie 操作
+      }
       this.isLogin = true
     },
   },
@@ -102,7 +99,6 @@ export const useStore = defineStore('main', {
       return getNavList(role, true)
     },
     $cookies: () => {
-      // 繼續使用 useCookies Stub，因為它的函數已被更新為不依賴外部庫
       const cookies = useCookies()
       return {
         removeAll: () => {

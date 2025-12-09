@@ -14,13 +14,13 @@
         class="hidden md:flex items-center gap-3 sm:gap-4 md:gap-6 font-bold text-sm lg:text-base"
       >
         <template v-if="currentRole === 'guest'">
-          <button
+          <!-- <button
             @click="goTeam"
             class="flex items-center gap-2 hover:text-green-100 transition-colors"
           >
             <SvgItem name="heart-hand" size="5" />
             <span class="hidden sm:inline">開發團隊</span>
-          </button>
+          </button> -->
           <button
             @click="goLogin"
             class="flex items-center gap-2 hover:text-green-100 transition-colors"
@@ -38,13 +38,13 @@
             <SvgItem name="history" size="5" />
             <span class="hidden sm:inline">邀約歷史</span>
           </button>
-          <button
+          <!-- <button
             @click="goTeam"
             class="flex items-center gap-2 hover:text-green-100 transition-colors"
           >
             <SvgItem name="heart-hand" size="5" />
             <span class="hidden sm:inline">開發團隊</span>
-          </button>
+          </button> -->
           <button
             @click="goProfile"
             class="flex items-center gap-2 hover:text-green-100 transition-colors"

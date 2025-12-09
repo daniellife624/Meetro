@@ -108,14 +108,21 @@ const submitFeedback = async () => {
       rating: rating.value,
     })
 
-    alert(`滿意度提交成功！\n當前配對狀態: ${res.data.feedback_status}`)
-
+    if (res && res.status === 'success') {
+      alert(`滿意度提交成功！\n當前配對狀態: ${res.feedback_status}`)
+    } else {
+      // 處理成功但返回結構不對的極端情況
+      alert('提交成功，但響應格式異常。')
+    }
     // 通知父組件 (history.vue) 資料已更新
     emit('submitted', { matchId: props.matchId, rating: rating.value })
     close()
   } catch (error: any) {
-    console.error('提交滿意度失敗:', error)
-    alert('提交失敗：' + (error.response?.data?.detail || '未知錯誤'))
+    console.error('Feedback Submission Failed:', error)
+
+    // 顯示後端返回的 detail 訊息 (如果有的話)
+    const errorDetail = error.detail || error.message || '未知錯誤'
+    alert('提交失敗：' + errorDetail)
   } finally {
     isSubmitting.value = false
   }

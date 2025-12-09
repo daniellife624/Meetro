@@ -1,5 +1,4 @@
 import axios from 'axios'
-// 引入 Store (注意：在攔截器中使用 Store 需小心循環引用，但在 Vue 3 + Pinia 通常沒問題)
 import { useRoleStore } from '@/stores/modules/useRole'
 
 const service = axios.create({
@@ -7,7 +6,6 @@ const service = axios.create({
   timeout: 20000,
 })
 
-// 【新增】Request Interceptor：自動帶上 Token
 service.interceptors.request.use(
   (config) => {
     const roleStore = useRoleStore()
@@ -23,7 +21,7 @@ service.interceptors.request.use(
   },
 )
 
-// Response Interceptor (保持原樣，或是加上 401 自動登出)
+// Response Interceptor
 service.interceptors.response.use(
   (response) => {
     return response.data
@@ -31,7 +29,6 @@ service.interceptors.response.use(
   (error) => {
     console.error('API Error:', error)
 
-    // 建議加上：如果 Token 過期 (401)，自動登出並導向登入頁
     if (error.response && error.response.status === 401) {
       const roleStore = useRoleStore()
       roleStore.logout()

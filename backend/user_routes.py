@@ -27,15 +27,14 @@ def get_db():
 @router.post("/register", response_model=backend.schemas.UserOut)
 def register(user_in: backend.schemas.UserCreate, db: Session = Depends(get_db)):
     password_bytes = user_in.password.encode("utf-8")
-    # 🚨 輸出實際接收到的密碼長度（以 bytes 計算）
     print(f"DEBUG: Received password length (bytes): {len(password_bytes)}")
     print(f"DEBUG: Password start (first 10 chars): {user_in.password[:10]}")
-    # 1. 檢查 Email 是否存在
+    # 檢查 Email 是否存在
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="此 Email 已被註冊")
 
-    # 2. 建立使用者
+    # 建立使用者
     user = User(
         email=user_in.email,
         name=user_in.username,  # 對應 schemas 的 username 到 models 的 name
@@ -54,17 +53,17 @@ def register(user_in: backend.schemas.UserCreate, db: Session = Depends(get_db))
 # 登入 API
 @router.post("/login", response_model=backend.schemas.Token)
 def login(user_in: backend.schemas.UserLogin, db: Session = Depends(get_db)):
-    # 1. 查詢使用者
+    # 查詢使用者
     user = db.query(User).filter(User.email == user_in.email).first()
 
-    # 2. 驗證帳密
+    # 驗證帳密
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,  # 使用 401 比較標準
             detail="帳號或密碼錯誤",
         )
 
-    # 3. 簽發 JWT
+    # 簽發 JWT
     token = create_access_token(
         {"sub": str(user.id), "email": user.email, "role": user.role}
     )

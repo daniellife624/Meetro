@@ -105,7 +105,6 @@ import InviteDetailPopup from '@/components/web/PopupBox/InviteDetailPopup.vue'
 import FeedbackPopup from '@/components/web/PopupBox/FeedbackPopup.vue'
 import request from '@/utils/request'
 
-// 🚨 修正：擴展 InviteHistoryItem 介面 (與後端 MatchItemResponse 匹配)
 interface InviteHistoryItem {
   id: number
   partnerName: string
@@ -116,7 +115,7 @@ interface InviteHistoryItem {
   inviteDate: string | Date
   sender_rating: number | null
   receiver_rating: number | null
-  is_current_user_sender: boolean // 🚨 來自後端
+  is_current_user_sender: boolean
   googleMapLink?: string
 }
 
@@ -143,10 +142,9 @@ onMounted(() => {
   fetchHistory()
 })
 
-// --- Computed ---
 const pendingInvites = computed(() => allInvites.value.filter((i) => i.status === 'pending'))
 
-// 🚨 修正：過濾出狀態為 confirmed 且當前使用者尚未評分的 Match
+// 過濾出狀態為 confirmed 且當前使用者尚未評分的 Match
 const confirmedInvites = computed(() =>
   allInvites.value.filter((i) => {
     if (i.status !== 'confirmed') return false

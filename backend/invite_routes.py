@@ -20,14 +20,13 @@ def get_db():
         db.close()
 
 
-# 1. 建立邀約 (Sender)
+# 建立邀約 (Sender)
 @router.post("", response_model=backend.schemas.InviteOut)
 def create_invite(
     invite_in: backend.schemas.InviteCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 🚨 偵錯 1：輸出接收到的站點鍵
     print(f"DEBUG: Received station_key from Frontend: {invite_in.station_key}")
 
     # 找站點
@@ -35,7 +34,7 @@ def create_invite(
 
     station = db.query(Station).filter(Station.key == station_key_lower).first()
 
-    # 🚨 偵錯 2：輸出站點查詢結果
+    # 輸出站點查詢結果
     if not station:
         # 如果站點不存在，確認資料庫中到底有沒有該鍵值
         print(f"DEBUG: Station key '{station_key_lower}' NOT FOUND in DB.")
@@ -64,7 +63,6 @@ def create_invite(
         status="open",
     )
 
-    # 🚨 修正：加入 try...except 處理資料庫寫入錯誤
     try:
         db.add(new_invite)
         db.commit()
@@ -80,7 +78,7 @@ def create_invite(
     return new_invite
 
 
-# 2. 查詢某站點的邀約 (Receiver)
+# 查詢某站點的邀約 (Receiver)
 @router.get("", response_model=List[backend.schemas.InviteOut])
 def get_invites(station_key: str = Query(...), db: Session = Depends(get_db)):
     station = db.query(Station).filter(Station.key == station_key.lower()).first()

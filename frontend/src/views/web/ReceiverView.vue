@@ -90,7 +90,6 @@ const stationMap: Record<string, string> = {
   gongguan: '公館',
   nanjingfuxing: '南京復興',
   songshan: '松山',
-  // 可自行補齊其他站點...
 }
 
 interface Props {
@@ -142,8 +141,6 @@ const loadInvites = async (key: string) => {
         return {
           id: item.id,
           title: item.title,
-          // 後端 InviteOut 回傳 sender_id，若要名字需在後端加載或前端額外查詢
-          // 這裡暫時顯示 '未知用戶' 或後端改為回傳 Nested User Object
           senderName: item.sender ? item.sender.name : '未知用戶',
           date: dateStr,
           day: dayMap[d.getDay()],
@@ -201,7 +198,6 @@ const handleReject = (id: number) => {
   invites.value = invites.value.filter((i) => i.id !== id)
 }
 
-// 簡化版資料 (使用 String Icon Name)
 const introSteps = [
   { title: '選擇捷運站', content: '選擇松山新店線(綠線)想探索的捷運站。', icon: 'location-dot' },
   {
@@ -220,8 +216,8 @@ const introSteps = [
     icon: 'check',
   },
   {
-    title: '成功配對',
-    content: '當雙方確認並完成所有步驟後，恭喜您！邀約成功，準備出發吧！',
+    title: '模擬成功機率',
+    content: '當雙方完成滿意度填寫後，即可於個人帳戶檢視模擬下一次成功機率之結果',
     icon: 'party',
   },
 ]

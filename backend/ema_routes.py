@@ -1,5 +1,4 @@
 # backend/ema_routes.py
-# 定義 GET/POST 的邏輯
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from typing import List
@@ -22,25 +21,22 @@ def get_db():
         db.close()
 
 
-# 1. 取得特定站點的繪馬牆
+# 取得特定站點的繪馬牆
 @router.get("/{station_key}", response_model=List[backend.schemas.EmaOut])
 def get_station_emas(station_key: str, db: Session = Depends(get_db)):
-    # 先找出站點 ID
     station = db.query(Station).filter(Station.key == station_key.lower()).first()
 
     if not station:
-        return []  # 如果站點不存在，回傳空列表
+        return []
 
-    # 查詢該站點的繪馬，並預先載入 User 資料 (為了拿名字)
     emas = (
         db.query(Ema)
         .options(joinedload(Ema.user))
         .filter(Ema.station_id == station.id)
-        .order_by(Ema.created_at.desc())  # 新的在上面
+        .order_by(Ema.created_at.desc())
         .all()
     )
 
-    # 轉換格式回傳
     results = []
     for ema in emas:
         results.append(
@@ -57,7 +53,7 @@ def get_station_emas(station_key: str, db: Session = Depends(get_db)):
     return results
 
 
-# 2. 新增繪馬 (需登入)
+# 新增繪馬 (需登入)
 @router.post("", response_model=backend.schemas.EmaOut)
 def create_ema(
     ema_in: backend.schemas.EmaCreate,

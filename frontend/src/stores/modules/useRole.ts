@@ -27,7 +27,7 @@ export const useRoleStore = defineStore('role', () => {
     localStorage.setItem('meetro_role', newRole)
   }
 
-  // 登出 (清除所有)
+  // 登出
   function logout() {
     role.value = 'guest'
     token.value = ''
@@ -35,7 +35,7 @@ export const useRoleStore = defineStore('role', () => {
     localStorage.removeItem('meetro_token')
   }
 
-  // 模擬登入 (可以保留或移除，建議保留方便測試)
+  // 模擬登入
   function loginAsUser() {
     setRole('user')
   }
@@ -52,7 +52,7 @@ export const useRoleStore = defineStore('role', () => {
     isAdmin,
     isAuthenticated,
     setRole,
-    setLoginState, // 匯出 setLoginState
+    setLoginState,
     loginAsUser,
     loginAsAdmin,
     logout,

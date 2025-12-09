@@ -303,13 +303,12 @@ const stationAttractions: Record<string, string> = {
   xindian: '碧潭風景區、新店老街、和美山步道',
 }
 
-// --- 步驟指南資料 (寫死、使用 String Icon Name) ---
-// 這裡直接傳遞 SvgItem 的 name 字串，乾淨俐落
+// --- 步驟指南資料
 const introSteps = [
   {
     title: 'STEP 1: 選擇捷運站',
     content: '選擇松山新店線(綠線)想探索的捷運站。',
-    icon: 'location-dot', // 对应 map-pin
+    icon: 'location-dot',
   },
   {
     title: 'STEP 2: 確認目的',
@@ -327,8 +326,8 @@ const introSteps = [
     icon: 'check',
   },
   {
-    title: 'STEP 5: 成功配對',
-    content: '當雙方確認並完成所有步驟後，恭喜您！邀約成功，準備出發吧！',
+    title: 'STEP 5: 模擬成功機率',
+    content: '當雙方完成滿意度填寫後，即可於個人帳戶檢視模擬下一次成功機率之結果',
     icon: 'party',
   },
 ]

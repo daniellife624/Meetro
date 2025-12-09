@@ -1,5 +1,3 @@
-// import Cookies from 'js-cookie' // <-- 暫時註解掉，直到 Docker/Vite 解析問題解決
-
 /**
  * @description 暫時性的 Vue Composable (Stub) for handling cookie operations.
  * 由於 'js-cookie' 匯入失敗，暫時使用空操作 (No-op) 函數。

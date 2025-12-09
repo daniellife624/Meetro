@@ -36,10 +36,10 @@
 
         <nav class="flex-grow space-y-2 w-full">
           <template v-if="currentRole === 'guest'">
-            <a @click="$emit('go-team')" class="nav-item">
+            <!-- <a @click="$emit('go-team')" class="nav-item">
               <SvgItem name="heart-hand" size="5" />
               <span>開發團隊</span>
-            </a>
+            </a> -->
             <a @click="$emit('go-login')" class="nav-item text-[#008659] bg-green-50">
               <SvgItem name="login" size="5" />
               <span>登入 / 註冊</span>
@@ -59,10 +59,10 @@
               <SvgItem name="user" size="5" />
               <span>我的帳戶</span>
             </a>
-            <a @click="$emit('go-team')" class="nav-item">
+            <!-- <a @click="$emit('go-team')" class="nav-item">
               <SvgItem name="heart-hand" size="5" />
               <span>開發團隊</span>
-            </a>
+            </a> -->
           </template>
 
           <template v-else-if="currentRole === 'admin'">
@@ -109,11 +109,6 @@ const closeDrawer = () => {
 </script>
 
 <style scoped>
-/* 【修改重點】
-  1. -mx-4: 讓背景往左拉出 1rem (抵銷父層的部分 padding)
-  2. w-[calc(100%+2rem)]: 補回被拉出的寬度，讓背景填滿
-  3. px-4: 保持內容內縮 1rem，這樣圖示就會剛好回到與標題對齊的位置
-*/
 .nav-item {
   @apply -mx-4 w-[calc(100%+2rem)] flex items-center justify-start gap-3 px-4 py-3 rounded-lg text-gray-700 font-bold cursor-pointer transition-colors hover:bg-gray-100;
 }

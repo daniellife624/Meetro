@@ -182,8 +182,8 @@ const introSteps = [
     icon: 'check',
   },
   {
-    title: 'STEP 5: 成功配對',
-    content: '當雙方確認並完成所有步驟後，恭喜您！邀約成功，準備出發吧！',
+    title: '模擬成功機率',
+    content: '當雙方完成滿意度填寫後，即可於個人帳戶檢視模擬下一次成功機率之結果',
     icon: 'party',
   },
 ]
@@ -245,8 +245,6 @@ const initMap = () => {
     const lat = e.latLng.lat()
     const lng = e.latLng.lng()
     marker.setPosition(e.latLng)
-
-    // 🚨 修正：確保 latLng 字串在逗號後沒有空格
     invitation.value.latLng = `${lat},${lng}`
     invitation.value.locationName = '正在查詢地點...'
 
@@ -270,16 +268,12 @@ const initMap = () => {
   })
 }
 
-// --- 修正：呼叫真實 API ---
 const sendInvitation = async () => {
   if (!isFormValid.value) return
   isSubmitting.value = true
 
   try {
-    // 拆解 lat, lng
     const [latStr, lngStr] = invitation.value.latLng.split(',')
-
-    // 🚨 修正：使用 trim() 清除可能存在的空格，確保轉換為數字的準確性
     const lat = parseFloat(latStr.trim())
     const lng = parseFloat(lngStr.trim())
 
