@@ -43,8 +43,8 @@ class Station(Base):
     key = Column(String(50), unique=True, index=True)
     name_zh = Column(String, nullable=False)
     line_code = Column(String(10), nullable=True)
-    # latitude = Column(Float, nullable=True)
-    # longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
 
     attractions = relationship("Attraction", back_populates="station")
     invites = relationship("Invite", back_populates="station")
@@ -78,7 +78,7 @@ class Invite(Base):
     sender = relationship("User", back_populates="invites_sent")
     station = relationship("Station", back_populates="invites")
     matches = relationship("Match", back_populates="invite")
-    matches_list = relationship("Match", back_populates="invite")
+    # matches_list = relationship("Match", back_populates="invite")
 
 
 # 5. 配對表
@@ -103,7 +103,7 @@ class Match(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    invite = relationship("Invite", back_populates="matches_list")
+    invite = relationship("Invite", back_populates="matches")
     receiver = relationship("User", foreign_keys=[receiver_id])
 
 

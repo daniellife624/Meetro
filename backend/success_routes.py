@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from backend.database import SessionLocal
 from backend.auth import get_current_user
-from backend.models import User, Match, Invite
+from backend.models import User, Match, Invite, SystemVariable
 from backend.weather_routes import compute_weather_score, compute_place_score
 
 router = APIRouter(prefix="/api/success", tags=["success"])
@@ -23,6 +23,29 @@ def compute_place_score(lat: float, lng: float) -> float:
     return 85.0
 
 
+# --------------------------------
+# 動態權重讀取函式
+# --------------------------------
+def get_weights(db: Session) -> dict:
+    """從資料庫讀取 SystemVariable 權重，並轉換為 0.0 到 1.0 的浮點數"""
+    weights = {}
+    configs = db.query(SystemVariable).all()
+
+    if not configs:
+        # 如果資料庫為空，返回一個合理的預設值 (必須總和為 1.0)
+        return {
+            "歷史滿意度": 0.50,
+            "天氣影響": 0.30,
+            "地點熱門度": 0.20,
+        }
+
+    for c in configs:
+        # 將 Integer 權重 (0-100) 轉換為 Float (0.0-1.0)
+        weights[c.name] = c.weight / 100.0
+
+    return weights
+
+
 @router.get("/estimate")
 def estimate_success_rate(
     station_key: str = Query(..., description="捷運站 key，例如 ximen"),
@@ -33,19 +56,24 @@ def estimate_success_rate(
 ):
     """
     估算使用者在下次邀約中潛在的成功率。
-    只要對方已評分，即可納入歷史滿意度計算。
-    計算公式：天氣分數*30% + 地點分數*20% + 歷史滿意度*50%
+    只要對方已評分，即可納入歷史滿意度計算 (動態權重)。
     """
+
+    # 讀取動態權重
+    weights = get_weights(db)
+
+    # 確保所有權重都存在 (使用 .get() 獲取，若不存在則使用預設值)
+    W_HISTORY = weights.get("歷史滿意度", 0.50)
+    W_WEATHER = weights.get("天氣影響", 0.30)
+    W_PLACE = weights.get("地點熱門度", 0.20)
 
     # --------------------------------
     # 1. 天氣地點分數
     # --------------------------------
     try:
-        # 呼叫 weather_routes 裡定義的工具函式
         weather_score = compute_weather_score(station_key)
     except Exception as e:
         print(f"[Backend] Error calling compute_weather_score: {e}")
-        # 如果天氣 API 失敗，給予中性分數 (當作陰天)
         weather_score = 60.0
 
     place_score = compute_place_score(lat=lat, lng=lng)
@@ -53,14 +81,11 @@ def estimate_success_rate(
     # --------------------------------
     # 2. 歷史 Match 滿意度 (計算對方給你的平均分數)
     # --------------------------------
-    # 查詢該使用者所有狀態為 'confirmed' 且雙方都已評分的 Match 紀錄
     matches = (
         db.query(Match)
         .options(joinedload(Match.invite))
         .filter(
-            # 必須是已確認的 Match
             Match.status == "confirmed",
-            # 必須是雙方都已評分的 Match
             (Match.receiver_id == current_user.id)
             | (Invite.sender_id == current_user.id),
         )
@@ -71,13 +96,17 @@ def estimate_success_rate(
     history_label = "無紀錄"
     success_rate = None
     all_partner_ratings = []
-    rated_count = 0  # 紀錄有效評分次數
+    rated_count = 0
 
     if matches:
         for m in matches:
-            # 判斷對方是否已評分，如果是，則納入計算
             partner_rating = None
 
+            # 確保 m.invite 存在 (避免在舊紀錄中出錯)
+            if not m.invite:
+                continue
+
+            # 判斷對方是否已評分，如果是，則納入計算
             if m.invite.sender_id == current_user.id:
                 # 身份：我是 Sender，檢查 Receiver 是否已評分
                 if m.receiver_rating is not None:
@@ -94,22 +123,21 @@ def estimate_success_rate(
                 rated_count += 1
 
         if all_partner_ratings:
-            # 計算歷史滿意度的平均值 (0-100 分制)
             history_score = sum(all_partner_ratings) / len(all_partner_ratings)
             history_label = f"有 {rated_count} 筆紀錄"
 
             # --------------------------------
-            # 3. 最終權重計算 (預測下次邀約成功率)
+            # 3. 最終權重計算 (使用動態權重)
             # --------------------------------
-            # 權重：歷史滿意度 50% + 天氣 30% + 地點 20%
             success_rate = (
-                (history_score * 0.50) + (weather_score * 0.30) + (place_score * 0.20)
+                (history_score * W_HISTORY)
+                + (weather_score * W_WEATHER)
+                + (place_score * W_PLACE)
             )
 
-            # 確保結果介於 0 到 100 之間
             success_rate = round(max(0, min(100, success_rate)), 2)
         else:
-            history_label = "有紀錄，但評分不完整"
+            history_label = "無紀錄"
             success_rate = None
 
     # --------------------------------

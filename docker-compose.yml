@@ -13,7 +13,7 @@ services:
       # 1. 程式碼熱重載 (維持不變)
       - ./backend:/app/backend 
       
-      # 2. 🚨 關鍵修正：映射資料庫 Volume 到 /tmp/
+      # 2. 映射資料庫 Volume 到 /tmp/
       # 這會將 /tmp/ 目錄下的所有內容 (包括 meetro.db) 持久化到 Docker 命名 Volume 中。
       - meetro_data:/tmp/
       
@@ -34,6 +34,6 @@ services:
     depends_on:
       - backend
 
-# 🚨 新增命名 Volume 區塊
+# 新增命名 Volume 區塊
 volumes:
   meetro_data:

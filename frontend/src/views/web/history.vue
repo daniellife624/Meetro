@@ -100,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import InviteCard, { type InviteHistoryItem } from '@/components/cards/InviteCard.vue' // 🚨 導入修正後的 InviteCard
+import InviteCard, { type InviteHistoryItem } from '@/components/cards/InviteCard.vue'
 import InviteDetailPopup from '@/components/web/PopupBox/InviteDetailPopup.vue'
 import FeedbackPopup from '@/components/web/PopupBox/FeedbackPopup.vue'
 import request from '@/utils/request'

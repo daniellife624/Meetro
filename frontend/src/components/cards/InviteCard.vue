@@ -92,7 +92,7 @@ defineEmits<{
   (e: 'feedback'): void // 觸發填寫滿意度彈窗
 }>()
 
-// 🚨 核心邏輯：判斷當前使用者是否已評分
+// 判斷當前使用者是否已評分
 const isRated = computed(() => {
   if (props.type !== 'confirmed') return false
 

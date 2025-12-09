@@ -12,7 +12,7 @@ import NotFound from '@/views/404.vue' // 假設 404.vue 也在 src/views/ 下
 export const constantRoutes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'home', // ⭐️ 關鍵修正：明確定義 'home' 名稱
+    name: 'home', // 明確定義 'home' 名稱
     component: HomeView,
     meta: { title: '首頁', requiresAuth: false },
   },
