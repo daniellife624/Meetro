@@ -2,13 +2,8 @@
   <header class="w-full h-16 sm:h-20 bg-[#008659] shadow-md font-sans z-50 relative">
     <div class="w-full h-full px-4 md:px-8 flex items-center justify-between text-white">
       <div class="flex items-center cursor-pointer" @click="goHome">
-        <div class="w-8 h-8 sm:w-10 sm:h-10 mr-3 flex-shrink-0">
-          <SvgItem
-            name="meetro"
-            size="full"
-            class="text-[#008659] p-0.5 bg-white rounded-sm"
-            filled
-          />
+        <div class="w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0">
+          <SvgItem name="heart-hand" size="full" class="text-white rounded-sm" />
         </div>
 
         <h1 class="text-lg sm:text-xl font-bold tracking-wide truncate">
