@@ -59,7 +59,7 @@ def login(user_in: backend.schemas.UserLogin, db: Session = Depends(get_db)):
     # 驗證帳密
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,  # 使用 401 比較標準
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="帳號或密碼錯誤",
         )
 

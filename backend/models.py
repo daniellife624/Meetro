@@ -87,7 +87,6 @@ class Invite(Base):
     sender = relationship("User", back_populates="invites_sent")
     station = relationship("Station", back_populates="invites")
     matches = relationship("Match", back_populates="invite")
-    # matches_list = relationship("Match", back_populates="invite")
 
 
 # 5. 配對表

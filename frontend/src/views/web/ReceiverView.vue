@@ -86,10 +86,26 @@ import SvgItem from '@/components/icons/SvgItem.vue'
 import request from '@/utils/request'
 
 const stationMap: Record<string, string> = {
-  xindian: '新店',
-  gongguan: '公館',
-  nanjingfuxing: '南京復興',
   songshan: '松山',
+  nanjingsanmin: '南京三民',
+  taipeiarena: '台北小巨蛋',
+  nanjingfuxing: '南京復興',
+  songjiangnanjing: '松江南京',
+  zhongshan: '中山',
+  beimen: '北門',
+  ximen: '西門',
+  xiaonanmen: '小南門',
+  chiangkaishekmemorialhall: '中正紀念堂',
+  guting: '古亭',
+  taipowerbuilding: '台電大樓',
+  gongguan: '公館',
+  wanlong: '萬隆',
+  jingmei: '景美',
+  dapinglin: '大坪林',
+  qizhang: '七張',
+  xiaobitan: '小碧潭',
+  xindiandistrictoffice: '新店區公所',
+  xindian: '新店',
 }
 
 interface Props {
@@ -173,7 +189,7 @@ watch(
       loadInvites(newKey)
     }
   },
-  { immediate: true }, // 🚨 關鍵：在組件創建時立即執行一次
+  { immediate: true },
 )
 
 const handleViewDetails = (id: number) => {

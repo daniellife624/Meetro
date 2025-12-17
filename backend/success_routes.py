@@ -5,11 +5,7 @@ from typing import List, Optional
 from backend.database import SessionLocal
 from backend.auth import get_current_user
 from backend.models import User, Match, Invite, SystemVariable
-
-# 🚨 導入 success_rate_service 中的核心函式
 from backend.services.success_rate_service import get_bcms_weights
-
-# 假設您有一個單獨的 weather_routes 或服務來處理這些分數
 from backend.weather_routes import compute_weather_score
 
 
@@ -24,10 +20,9 @@ def get_db():
         db.close()
 
 
-# 🚨 模擬函式：確保 compute_place_score 在您的專案中已定義
+# 確保 compute_place_score 在您的專案中已定義
 def compute_place_score(lat: float, lng: float) -> float:
     """模擬計算地點景點熱門程度得分 (0-100)"""
-    # 這裡使用您提供的模擬值
     return 85.0
 
 
@@ -43,8 +38,6 @@ def estimate_success_rate(
     估算使用者在下次邀約中潛在的成功率。
     只要對方已評分，即可納入歷史滿意度計算 (動態權重)。
     """
-
-    # 🚨 關鍵修正：從 service 層讀取動態權重 (已轉換為 0.0-1.0)
     weights = get_bcms_weights(db)
 
     # 確保所有權重都存在 (使用 .get() 獲取，若不存在則使用 service 層的預設值)
@@ -53,7 +46,7 @@ def estimate_success_rate(
     W_PLACE = weights.get("activity", 0.20)
 
     # --------------------------------
-    # 1. 天氣地點分數
+    # 天氣地點分數
     # --------------------------------
     try:
         weather_score = compute_weather_score(station_key)
@@ -64,13 +57,9 @@ def estimate_success_rate(
     place_score = compute_place_score(lat=lat, lng=lng)
 
     # --------------------------------
-    # 2. 歷史 Match 滿意度 (計算對方給你的平均分數)
+    # 歷史 Match 滿意度 (計算對方給你的平均分數)
     # --------------------------------
     # 查詢與當前用戶相關的所有已確認 Match
-    # 💡 注意：您在原邏輯中使用了 Match.invite 的 joinedload，但 Match.invite 不在 Match Model 上。
-    #              Match Model 應通過 invite_id 連接到 Invite。
-    #              這裡使用 JOIN 來修正 ORM 查詢，以確保邏輯正常運行。
-
     matches = (
         db.query(Match)
         .join(Invite, Match.invite_id == Invite.id)
@@ -117,7 +106,7 @@ def estimate_success_rate(
             history_label = f"有 {rated_count} 筆紀錄"
 
             # --------------------------------
-            # 3. 最終權重計算 (使用動態權重)
+            # 最終權重計算 (使用動態權重)
             # --------------------------------
             success_rate = (
                 (history_score * W_HISTORY)
@@ -137,7 +126,7 @@ def estimate_success_rate(
             success_rate = round(max(0, min(100, success_rate)), 2)
 
     # --------------------------------
-    # 4. 回傳結果
+    # 回傳結果
     # --------------------------------
     return {
         "weather_score": round(weather_score, 2),

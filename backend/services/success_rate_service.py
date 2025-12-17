@@ -4,8 +4,6 @@ from backend.models import SystemVariable, Match, User
 from backend.database import SessionLocal
 from typing import Dict, Any
 
-# 假設您已經有了獲取 SystemVariable 權重和計算各項分數的邏輯
-
 
 def get_bcms_weights(db: Session) -> Dict[str, float]:
     """獲取當前 BCMS 權重，並轉換為小數 (0.0 - 1.0)"""
@@ -22,8 +20,6 @@ def get_bcms_weights(db: Session) -> Dict[str, float]:
 
 def calculate_history_score(db: Session, user_id: int) -> float:
     """計算用戶的歷史滿意度分數 (假設返回 0-100)"""
-    # 邏輯：平均所有用戶給這個 user 的評分
-
     # 找出所有 "receiver_id" 是此 user 的 Match，且 sender 已評分
     matches_as_receiver = (
         db.query(Match)
@@ -59,18 +55,18 @@ def calculate_simulated_success_rate(db: Session, user_id: int) -> float:
     計算用戶的模擬成功率 (Simulated Success Rate)
     返回 0-100 的浮點數百分比。
     """
-    # 1. 獲取權重
+    # 獲取權重
     weights = get_bcms_weights(db)
 
-    # 2. 獲取分數 (使用模擬/簡化分數，因為我們沒有實時天氣和地點數據)
+    # 獲取分數 (使用模擬/簡化分數，因為我們沒有實時天氣和地點數據)
     history_score = calculate_history_score(db, user_id)
 
-    # 🚨 模擬分數 (請根據您的實際項目調整或使用您實際計算的分數)
+    # 模擬分數
     # 假設這兩個分數與用戶本身無關，是取決於邀約發生的時間地點
     weather_score = 90.0
     activity_score = 85.0
 
-    # 3. 應用 BCMS 權重公式
+    # 應用 BCMS 權重公式
     success_rate = (
         weights["history"] * history_score
         + weights["weather"] * weather_score

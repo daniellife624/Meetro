@@ -13,7 +13,7 @@ const BCMSDashboard = () => import('@/views/bcms/index.vue') // 後台儀表板
 const WebLogin = () => import('@/views/web/login.vue')
 const WebRegister = () => import('@/views/web/register.vue')
 const HomePage = () => import('@/views/web/index.vue')
-const AboutPage = () => import('@/views/web/about.vue')
+// const AboutPage = () => import('@/views/web/about.vue')
 const SenderView = () => import('@/views/web/SenderView.vue')
 const ReceiverView = () => import('@/views/web/ReceiverView.vue')
 const HistoryPage = () => import('@/views/web/history.vue')
@@ -57,12 +57,12 @@ export const publicWebRoutes: RouteRecordRaw[] = [
     props: true,
     meta: { title: '探索活動', isPublic: true, requiresAuth: false },
   },
-  {
-    path: 'about',
-    name: 'About',
-    component: AboutPage,
-    meta: { title: '關於我們', isPublic: true, requiresAuth: false },
-  },
+  // {
+  //   path: 'about',
+  //   name: 'About',
+  //   component: AboutPage,
+  //   meta: { title: '關於我們', isPublic: true, requiresAuth: false },
+  // },
   {
     path: 'ema/:stationKey',
     name: 'EmaWall',
@@ -90,7 +90,7 @@ export const privateWebRoutes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // 1. 後台登入 (獨立路由)
+    // 後台登入 (獨立路由)
     {
       path: '/bcms/login',
       name: 'BCMSLogin',
@@ -98,7 +98,7 @@ const router = createRouter({
       meta: { title: '後臺登入', isPublic: true, requiresAuth: false },
     },
 
-    // 2. 後台管理區
+    // 後台管理區
     {
       path: '/bcms',
       component: WebLayout,
@@ -113,7 +113,7 @@ const router = createRouter({
       ],
     },
 
-    // 3. 前台網頁
+    // 前台網頁
     {
       path: '/web',
       name: webRouteName,
@@ -140,8 +140,6 @@ const router = createRouter({
 })
 
 // --- Navigation Guards ---
-
-// 🚨 輔助函式: 超時機制 (保持不變)
 const timeoutPromise = (ms: number, promise: Promise<any>) => {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -165,19 +163,14 @@ router.beforeEach(async (to, from, next) => {
   const loadingStore = useLoadingStore()
   const roleStore = useRoleStore()
 
-  // 1. 確保載入狀態
+  // 確保載入狀態
   loadingStore.setLoading(true, '載入中...')
-
-  // 🚨 簡化：不再執行 await fetchUserRole()，相信 Local Storage 中的狀態是可靠的
-  // 避免異步阻塞問題。
-
   const isLoggedIn = roleStore.isAuthenticated
   const isAdmin = roleStore.isAdmin
-
-  const isLoginPath = to.name === 'WebLogin' // 登入頁名稱
+  const isLoginPath = to.name === 'WebLogin'
 
   // ----------------------------------------------------
-  // 核心邏輯 (只有四個判斷)
+  // 核心邏輯
   // ----------------------------------------------------
 
   if (to.name === 'BCMSDashboard') {

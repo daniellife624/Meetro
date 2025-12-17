@@ -18,7 +18,6 @@ router = APIRouter(prefix="/api", tags=["weather_map"])
 # -----------------------------------
 #         設定與常數
 # -----------------------------------
-
 CWA_URL = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001"
 CWA_API_KEY = "CWA-624BB740-DC7B-48E2-9002-B077B72CB174"
 
@@ -62,8 +61,6 @@ def get_db():
 # -----------------------------------
 #         工具函式
 # -----------------------------------
-
-
 def fetch_cwa_wx(location_name: str, retries: int = 1, timeout: int = 5) -> Dict:
     token = os.environ.get("CWA_API_KEY") or CWA_API_KEY
     params = {
@@ -125,8 +122,6 @@ def parse_weather_info(cwa_data: Dict) -> str:
 # -----------------------------------
 #   API Endpoints
 # -----------------------------------
-
-
 @router.get("/stations/{station_key}")
 def get_station_info(
     station_key: str, db: Session = Depends(get_db)  # 注入資料庫 Session
@@ -146,7 +141,7 @@ def get_station_info(
     else:
         attractions_list = ["(資料庫中無此站點資料)"]
 
-    # 2. 取得天氣
+    # 取得天氣
     city = STATION_LOCATION_MAP.get(station_key.lower(), "臺北市")
     cwa_data = fetch_cwa_wx(city)
     weather_str = parse_weather_info(cwa_data)
@@ -200,8 +195,6 @@ def get_place_info(lat: float = Query(...), lng: float = Query(...)):
 # -----------------------------------
 #   天氣與地點評分工具 (NEW)
 # -----------------------------------
-
-
 def compute_weather_score(station_key: str) -> float:
     """
     輸入捷運站 key，使用既有函式 fetch_cwa_wx() + parse_weather_info()

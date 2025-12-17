@@ -9,13 +9,9 @@ from backend.database import SessionLocal
 from backend.models import SystemVariable
 from backend.auth import get_current_user
 
-# 🚨 實際專案中，這裡應該有 Admin 權限檢查，但為了功能測試，先省略
-
 router = APIRouter(prefix="/api/bcms", tags=["bcms"])
 
 
-# --- Pydantic Schemas ---
-# 用於前端提交數據的輸入模型
 class VariableIn(BaseModel):
     name: str = Field(..., description="參數名稱")
     weight: int = Field(..., ge=0, le=100, description="權重值 (0-100 範圍)")
@@ -27,7 +23,7 @@ class VariableOut(BaseModel):
     id: int
     name: str
     weight: int
-    rule: str  # 對應 SystemVariable.rule_desc
+    rule: str
 
     model_config = {"from_attributes": True}
 
@@ -43,8 +39,6 @@ def get_db():
 # -----------------------------------
 #     API Endpoints
 # -----------------------------------
-
-
 @router.get("/config", response_model=List[VariableOut])
 def get_all_config(db: Session = Depends(get_db)):
     """獲取所有權重配置 (SystemVariable)"""
@@ -74,15 +68,15 @@ def save_config(variables: List[VariableIn], db: Session = Depends(get_db)):
             status_code=400, detail="所有參數的權重總和必須剛好等於 100。"
         )
 
-    # 刪除舊數據 (覆蓋模式)
+    # 刪除舊數據
     db.query(SystemVariable).delete()
 
     # 寫入新數據
     for v in variables:
         new_config = SystemVariable(
             name=v.name,
-            weight=v.weight,  # 直接寫入 Integer 權重
-            rule_desc=v.rule,  # 寫入 rule_desc
+            weight=v.weight,
+            rule_desc=v.rule,
         )
         db.add(new_config)
 

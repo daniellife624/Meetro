@@ -6,7 +6,6 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-
 from backend.database import SessionLocal
 from backend.models import Match, Invite, User, Station
 from backend.auth import get_current_user
@@ -35,11 +34,11 @@ class MatchItemResponse(BaseModel):
 
 
 class UpdateStatusRequest(BaseModel):
-    status: str  # 期望值: "confirmed", "rejected", ...
+    status: str
 
 
 class FeedbackRequest(BaseModel):
-    rating: int  # 接收 0-100 的數字
+    rating: int
 
 
 # --- Dependency ---
@@ -52,8 +51,6 @@ def get_db():
 
 
 # --- API Endpoints ---
-
-
 @router.get("/history", response_model=List[MatchItemResponse])
 def get_my_history(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)

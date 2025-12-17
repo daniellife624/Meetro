@@ -10,11 +10,9 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      # 1. 程式碼熱重載 (維持不變)
       - ./backend:/app/backend 
-      
-      # 2. 映射資料庫 Volume 到 /tmp/
-      # 這會將 /tmp/ 目錄下的所有內容 (包括 meetro.db) 持久化到 Docker 命名 Volume 中。
+      # 映射資料庫 Volume 到 /tmp/
+      # 將 /tmp/ 目錄下的所有內容 (包括 meetro.db) 持久化到 Docker 命名 Volume 中
       - meetro_data:/tmp/
       
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload

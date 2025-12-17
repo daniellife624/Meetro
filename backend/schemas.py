@@ -13,7 +13,6 @@ class UserBasic(BaseModel):
 
 
 class UserCreate(BaseModel):
-    # 必填欄位
     email: EmailStr
     password: str
     username: str
@@ -44,19 +43,19 @@ class Token(BaseModel):
 
 # 繪馬
 class EmaCreate(BaseModel):
-    station_key: str  # 前端傳來站點代號 (e.g. 'songshan')
-    location: str  # 探索地點名稱
-    content: str  # 心得
+    station_key: str
+    location: str
+    content: str
     photo_url: Optional[str] = None  # 照片 (Base64 或 URL)
 
 
 class EmaOut(BaseModel):
     id: int
-    userName: str  # 為了配合前端 EmaCard，直接回傳姓名
-    location: str  # 對應 location_text
+    userName: str
+    location: str
     content: str
     photoUrl: Optional[str] = None
-    date: str  # 格式化後的日期字串
+    date: str
 
     class Config:
         from_attributes = True
@@ -102,10 +101,7 @@ class InviteOutWithSuccessRate(BaseModel):
     location_name: str
     latitude: float
     longitude: float
-
-    # 🚨 關鍵新增：發送方的基本資訊
     sender: SenderInfo
-    # 🚨 關鍵新增：發送方的模擬成功率
     sender_success_rate: float
 
     class Config:

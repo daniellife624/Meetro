@@ -241,7 +241,6 @@ const handleFeedbackSubmitted = ({ matchId, rating }: { matchId: number; rating:
 </script>
 
 <style scoped>
-/* Style 保持不變 */
 @keyframes fadeIn {
   from {
     opacity: 0;

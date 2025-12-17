@@ -12,14 +12,14 @@ const userRoutes: RouteRecordRaw[] = [
       requiresAuth: false,
     },
   },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('@/views/web/about.vue'),
-    meta: {
-      title: '關於我們',
-      requiresAuth: false,
-    },
+  // {
+  //   path: '/about',
+  //   name: 'about',
+  //   component: () => import('@/views/web/about.vue'),
+  //   meta: {
+  //     title: '關於我們',
+  //     requiresAuth: false,
+  //   },
   },
   // 可以在這裡加入更多用戶相關的路由
 ]

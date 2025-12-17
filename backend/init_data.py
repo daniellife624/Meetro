@@ -1,4 +1,4 @@
-# backend/init_data.py (完整整合版本)
+# backend/init_data.py
 
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal, engine, Base
@@ -10,7 +10,7 @@ from backend.models import (
 )
 
 # -----------------------------------
-# 1. 靜態資料定義 (松山新店線全線，包含經緯度)
+# 靜態資料定義 (松山新店線全線，包含經緯度)
 # -----------------------------------
 # 座標來源: Google Maps / 各大開放資料 (用於模擬地點分數和 Google API 查詢)
 STATIONS_FULL_DATA = {
@@ -174,11 +174,11 @@ DEFAULT_BCMS_CONFIGS = [
         "rule_desc": "根據周邊景點數量與熱門程度進行加權計算，佔總機率的 20%。",
     },
 ]
-# -----------------------------------
-# 2. 初始化函式
-# -----------------------------------
 
 
+# -----------------------------------
+# 初始化函式
+# -----------------------------------
 def init_stations_and_attractions(db: Session):
     """初始化站點和景點資料"""
     print("--- 開始初始化捷運站與景點資料 ---")
@@ -228,15 +228,13 @@ def init_system_variables(db: Session):  # 函式名稱更新
 
 
 def init_users(db: Session):
-    """初始化測試用戶 (保持與之前一致)"""
-    # 這裡可以加入測試用戶邏輯
-    pass  # 假設您有單獨的用戶初始化邏輯，這裡先保持不變
+    """初始化測試用戶"""
+    pass
 
 
 # -----------------------------------
-# 3. 主執行區塊
+# 主執行區塊
 # -----------------------------------
-
 if __name__ == "__main__":
     print("正在連接資料庫...")
     # 確保所有 Model 都被載入，並建立資料表
@@ -245,6 +243,6 @@ if __name__ == "__main__":
     db = SessionLocal()
     init_stations_and_attractions(db)
     init_system_variables(db)  # BCMS 參數
-    init_users(db)  # 用戶初始化 (如果需要)
+    init_users(db)
     db.close()
     print("初始化腳本運行結束。")
